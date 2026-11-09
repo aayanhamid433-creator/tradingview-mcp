@@ -70,13 +70,11 @@ for name, mask in [("close > SMA200", daily.above & daily.sma200.notna()), ("clo
     L.append(f"| {name} | {len(x)} | {len(x)/daily.sma200.notna().sum()*100:.0f}% | {x.mean():+.1f} | {x.mean()/(x.std()/np.sqrt(len(x))):+.1f} | {x.std()*np.sqrt(252)/100:.1f}% |")
 L += ["", "2021-2026 was dominated by a long uptrend (gold roughly doubled), so 'above SMA200' days are the majority and any long-biased filter looks good in-sample. Treat as context, not evidence.", ""]
 
-# weekend gaps and daily-break gaps
-fri_close = daily.close[daily.index.dayofweek == 4]; mon_open = daily.open[daily.index.dayofweek == 0]
-gaps = (mon_open.values[:len(fri_close)] - fri_close.values[:len(mon_open)]) if False else None
-wk = pd.DataFrame({"fri_close": fri_close.reset_index(drop=True)})
-mo = mon_open.reset_index(drop=True)
-n = min(len(wk), len(mo)); g = (mo.iloc[:n].values - wk.fri_close.iloc[:n].values)
-L += ["## 6. Weekend gaps (Monday session open minus Friday session close, USD)", "", f"- weeks: {n}; median |gap| {np.median(np.abs(g)):.1f}; 90th percentile |gap| {np.percentile(np.abs(g), 90):.1f}; max |gap| {np.max(np.abs(g)):.1f}", f"- share of weeks with |gap| > 10 USD: {np.mean(np.abs(g) > 10)*100:.0f}%; > 20 USD: {np.mean(np.abs(g) > 20)*100:.0f}%", ""]
+# weekend gaps: Monday session open vs the Friday close three days earlier (date-aligned)
+fri = daily[daily.index.dayofweek == 4].close; mon = daily[daily.index.dayofweek == 0].open
+pairs = [(mon.loc[d], fri.loc[d - pd.Timedelta(days=3)]) for d in mon.index if (d - pd.Timedelta(days=3)) in fri.index]
+g = np.array([a - b for a, b in pairs]); n = len(g)
+L += ["## 6. Weekend gaps (Monday session open minus the preceding Friday session close, USD, date-aligned)", "", f"- weeks: {n}; median |gap| {np.median(np.abs(g)):.1f}; 90th percentile |gap| {np.percentile(np.abs(g), 90):.1f}; max |gap| {np.max(np.abs(g)):.1f}", f"- share of weeks with |gap| > 5 USD: {np.mean(np.abs(g) > 5)*100:.0f}%; > 10 USD: {np.mean(np.abs(g) > 10)*100:.0f}%; > 20 USD: {np.mean(np.abs(g) > 20)*100:.0f}%", f"- 2025-2026 only: median |gap| {np.median(np.abs(g[-95:])):.1f}, 90th percentile {np.percentile(np.abs(g[-95:]), 90):.1f}", ""]
 # daily break gap: 23:00 open vs 21:5x close
 d2 = m1.copy(); idx = d2.index
 last_pre = d2[(idx.hour == 21)].groupby(idx[idx.hour == 21].date).close.last()

@@ -80,10 +80,11 @@ Reading: a |t| below about 2 means the session drift is indistinguishable from z
 
 2021-2026 was dominated by a long uptrend (gold roughly doubled), so 'above SMA200' days are the majority and any long-biased filter looks good in-sample. Treat as context, not evidence.
 
-## 6. Weekend gaps (Monday session open minus Friday session close, USD)
+## 6. Weekend gaps (Monday session open minus the preceding Friday session close, USD, date-aligned)
 
-- weeks: 297; median |gap| 48.1; 90th percentile |gap| 232.7; max |gap| 882.1
-- share of weeks with |gap| > 10 USD: 88%; > 20 USD: 76%
+- weeks: 292; median |gap| 1.5; 90th percentile |gap| 15.7; max |gap| 111.9
+- share of weeks with |gap| > 5 USD: 22%; > 10 USD: 14%; > 20 USD: 7%
+- 2025-2026 only: median |gap| 4.4, 90th percentile 36.3
 
 ## 7. Daily-break gaps (23:00 UTC reopen minus last 21:xx UTC close, same date, USD)
 
