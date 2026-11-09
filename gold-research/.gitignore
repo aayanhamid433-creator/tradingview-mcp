@@ -1,0 +1,4 @@
+data/raw/*.zip
+data/raw/fetch.log
+data/*.parquet
+__pycache__/
