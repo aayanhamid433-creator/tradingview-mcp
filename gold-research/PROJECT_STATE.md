@@ -46,4 +46,4 @@ Export XAUUSD M1 (with spread) from the MT5 terminal you will trade, note the se
 - Chart responses use the fixed block from the master prompt; USE STATUS = UNVALIDATED DEMO until this file says otherwise.
 - Levels come from typed numbers in CHART_SUBMISSION_TEMPLATE.md; pixel reads are approximate.
 - No lot sizes and no compliance statements without the §11 inputs.
-- Every chart analysis is logged automatically to journal/GOLD_TRADE_JOURNAL.csv (one row per screenshot, WAIT included, setup_id GOLD-YYYYMMDD-NNNN) and committed; no analysis without a journal row (rule set by Aayan, 2026-11-09).
+- Every chart analysis is logged automatically to journal/GOLD_TRADE_JOURNAL.csv (one row per screenshot, WAIT included, setup_id GOLD-YYYYMMDD-NNNN) and pushed directly to main, no branch or PR; no analysis without a journal row (rule set by Aayan, 2026-11-09).
