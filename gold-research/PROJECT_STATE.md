@@ -1,6 +1,6 @@
 # PROJECT_STATE — Gold trading research (Aayan)
 
-Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, baseline). Candidate: **v2.0 CANDIDATE** (GOLD_PLAYBOOK_v2_CANDIDATE.md, layered combination of documented methods, **UNTESTED**). Validation status: v1.0 **INCONCLUSIVE**; v2.0 **not evaluated**. Use status for any chart analysis: **UNVALIDATED DEMO**.
+Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, baseline). Candidate: **v2.0 CANDIDATE** (GOLD_PLAYBOOK_v2_CANDIDATE.md). Validation status: v1.0 **INCONCLUSIVE**; v2.0 backtest on HistData **INCONCLUSIVE** (VALIDATION_REPORT_v2.md; contaminated by design, can only reject layers: Trigger B, momentum vote and the widened window are rejected). Use status for any chart analysis: **UNVALIDATED DEMO**.
 
 ## Timeline of this session (for audit of ordering)
 1. 00:11 UTC — tool check; market-data hosts blocked; environment allowlist created and approved; web research delegated to four agents.
@@ -11,7 +11,8 @@ Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, base
 6. 00:33 — all 11 variants run; analysis produced; verdict INCONCLUSIVE.
 7. 00:35 — chart-reading audit (16 charts) run by a separate model instance and scored.
 8. 00:40 — reports written; committed to branch `claude/quirky-lovelace-y41dkc` (merged to main as PR #1).
-9. 04:20–06:40 — second research pass (four agents: macro traders, quantitative evidence, intraday retail methods, risk rules; interrupted once by a usage limit); results/DATA_FACTS.md computed; **GOLD_PLAYBOOK_v2_CANDIDATE.md written** with pre-registered ablation variants; RESEARCH_SOURCES_v2_ADDENDUM.md and research_notes/ added.
+9. 04:20–06:40 — second research pass (four agents: macro traders, quantitative evidence, intraday retail methods, risk rules; interrupted once by a usage limit); results/DATA_FACTS.md computed; **GOLD_PLAYBOOK_v2_CANDIDATE.md written** with pre-registered ablation variants; RESEARCH_SOURCES_v2_ADDENDUM.md and research_notes/ added (PR #3).
+10. 17:00–17:30 — engine_v2.py written and regression-checked (v1-compat = V0_base exactly); all V2 variants run; mechanics validated (116/116, 0 problems); VALIDATION_REPORT_v2.md: **INCONCLUSIVE**; Trigger B, momentum vote and the 16:45 window rejected.
 
 ## Completed work and files (all under `gold-research/`)
 | Deliverable | File | Status |
@@ -24,7 +25,8 @@ Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, base
 | 6 Chart submission template | CHART_SUBMISSION_TEMPLATE.md | complete (template) |
 | 7 Project state | this file | — |
 | extra | FORWARD_TEST_PROTOCOL.md, data/DATA_AUDIT.md, results/VALIDATION_MECHANICS.md, chart_audit/CHART_AUDIT_RESULTS.md | complete |
-| 8 v2.0 candidate | GOLD_PLAYBOOK_v2_CANDIDATE.md, RESEARCH_SOURCES_v2_ADDENDUM.md, research_notes/*.md, results/DATA_FACTS.md (backtest/data_facts.py) | written; UNTESTED; engine not yet extended |
+| 8 v2.0 candidate | GOLD_PLAYBOOK_v2_CANDIDATE.md, RESEARCH_SOURCES_v2_ADDENDUM.md, research_notes/*.md, results/DATA_FACTS.md (backtest/data_facts.py) | written |
+| 9 v2.0 backtest | backtest/engine_v2.py (+ analyze_v2.py, validate_engine_v2.py), results/V2_*/, results/summary_v2.md, VALIDATION_MECHANICS_v2.md, VALIDATION_REPORT_v2.md | run; 0 mechanics problems; v1-compat regression exact; verdict INCONCLUSIVE |
 
 ## Blockers / missing inputs (one list)
 1. Broker and symbol confirmation (MT5 server timezone, XAUUSD spec screenshot).
@@ -40,10 +42,11 @@ Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, base
 | P2 | raise minimum reward/risk to 1.5 | V7 slightly better and fewer trades; not significant | same as P1 |
 | P3 | replace constant spread with time-of-day spread from broker data | realism | after broker export |
 | P4 | add DST-aware session windows | London/New York local times shift by one hour for part of the year | after broker export |
+| P6 | **v2.1** = v2.0 minus Trigger B, minus momentum vote, window 07:00–15:45 | on HistData this is V2_I-like: 55 OOS trades, +0.414 R, PF 1.93, max DD −7.7 R, CI [+0.030, +0.851]; but it is the third look at the same data and rests on 2025 runners | first clean test = broker export and the paper trade; never re-tuned on HistData |
 | P5 | v2.0 CANDIDATE: L1 daily bias (SMA200 + 12-1 momentum), news gate, min RR 1.5, 50 % partial at T1 + 3×ATR Chandelier trail, 0.5 % risk with Turtle drawdown scaling, three-strike / −2 R daily / −4 R weekly stops, Trigger B breakout OFF | Aayan asked for the documented gold methods to be combined; each element is a switchable layer with its own evidence label | pre-registered variants V2-A…V2-I in GOLD_PLAYBOOK_v2_CANDIDATE.md §11; paper trade per §12; recommended engine extension per §13 (HistData result is contaminated for P1/P2/bias and can only reject layers) |
 
 ## Exact next action
-**For v2.0:** (a) decide whether to extend backtest/engine.py with the v2.0 layers and run V2.0 and V2-A…V2-I before paper trading (recommended, ~1 session of work), or go straight to the demo; (b) in either case start the paper trade per FORWARD_TEST_PROTOCOL.md + GOLD_PLAYBOOK_v2_CANDIDATE.md §12 on the broker you will trade, logging layer tokens in every journal row.
+**For v2.0/v2.1:** backtest done (see VALIDATION_REPORT_v2.md). Next: start the paper trade of **v2.1** (P6) per FORWARD_TEST_PROTOCOL.md + GOLD_PLAYBOOK_v2_CANDIDATE.md §12 on the broker you will trade, logging layer tokens in every journal row.
 
 **For v1.0 (unchanged):** Export XAUUSD M1 (with spread) from the MT5 terminal you will trade, note the server's UTC offset in winter and summer, and send it with the symbol-specification screenshot. The next step is then: `python3 backtest/engine.py --all --data <your_file.parquet>` after converting the export with a small loader (to be added when the format is known), followed by a fresh verdict under the same pre-registered rule.
 
