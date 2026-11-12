@@ -27,7 +27,7 @@
 | Stop | swing extreme of the pullback bars ± max(0.30, 0.10 × ATR14) — **15-minute lows only; the research engine also used 1-minute lows** |
 | Target | 20-bar extreme at the first touch bar, capped at the prior-day high/low if more than 1 ATR beyond it |
 | Filter | reward/risk at placement ≥ 1.5; stop distance ≤ 0.6 × daily ATR |
-| Size | equity × 0.5 % ÷ stop distance, in ounces |
+| Size | equity × 0.5 % ÷ stop distance, in ounces, capped at 50 % margin use and 2.0 lots (added 2026-11-12 after the TradingView backtest showed margin calls: tight 15-minute stops produced 2-lot positions) |
 | Exit | 50 % at target, stop to entry ± 0.10, remainder trails at highest high − 3 × ATR; everything flat at the 20:45 UTC bar (fills at 20:45; the research rule was 20:50) |
 | Stops | day halts after 3 consecutive losses or −2 R closed; week halts at −4 R; max 3 entries per session day (23:00–23:00 UTC) |
 | News | no calendar access. Use the manual blackout inputs on red-folder days, or accept that the backtest trades through news (the research engine's approximate gate changed nothing) |

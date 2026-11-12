@@ -86,6 +86,9 @@ protFlatUsd = input.float(700, "Close everything when floating loss reaches USD"
 consistPct  = input.float(20, "Consistency: best day may be at most % of cycle profit", step=5, group=gAcct)
 cycleStart  = input.time(timestamp("2026-11-12T00:00:00+0000"), "Payout cycle start (UTC)", group=gAcct)
 inactDays   = input.int(30, "Inactivity limit, days without a trade", minval=5, group=gAcct)
+maxLots     = input.float(2.0, "Max lots per trade (hard cap)", step=0.1, group=gAcct)
+maxMarginPct= input.float(50, "Max margin use, % of equity (firm closes positions at 80 %)", step=5, group=gAcct)
+marginPct   = input.float(5.0, "Broker margin % (1:20 = 5; must match the strategy's margin setting)", step=1, group=gAcct)
 
 gPlot    = "Display"
 showLvls  = input.bool(true, "Show entry / stop / target", group=gPlot)
@@ -324,6 +327,14 @@ if inPos
 if inPos and pendSide != 0
     pendSide := 0
 
+// Order size: risk % of equity ÷ stop distance, then capped by margin use and by max lots (a tight stop must not
+// turn into a position the account cannot carry; a 1.25 USD stop at 0.5 % risk would be 2 lots = 78 % margin)
+f_qty(risk) =>
+    byRisk   = (strategy.equity * riskPct / 100) / risk
+    byMargin = (strategy.equity * maxMarginPct / 100) / (close * marginPct / 100)
+    q = math.min(byRisk, math.min(byMargin, maxLots * 100))
+    math.floor(q / qtyStep) * qtyStep
+
 // ───────────────────────────── Pending-order management (bar just closed) ─────────────────────────────
 if not inPos and pendSide != 0
     // cut-off, news, cancellations, expiry
@@ -363,7 +374,7 @@ if not inPos and pendSide != 0
             // refresh the resting stop order and the stop/target that will apply on fill
             stopEst2 = pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf
             riskPerOz := math.abs(pendLevel - stopEst2)
-            qty = math.floor((strategy.equity * riskPct / 100) / riskPerOz / qtyStep) * qtyStep
+            qty = f_qty(riskPerOz)
             if qty >= qtyStep
                 entryQty := qty
                 initStop := stopEst2
@@ -412,7 +423,7 @@ if canSignal and armed and touch and confOk and not na(atr) and not na(adx)
             firstBar   := bar_index
             lastTouch  := bar_index
             riskPerOz  := risk
-            qty = math.floor((strategy.equity * riskPct / 100) / risk / qtyStep) * qtyStep
+            qty = f_qty(risk)
             if qty >= qtyStep
                 entryQty := qty
                 initStop := stopEst
