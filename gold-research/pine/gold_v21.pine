@@ -25,7 +25,10 @@ strategy("Gold v2.1", shorttitle="Gold v2.1", overlay=true, pyramiding=0, max_la
      calc_on_every_tick=false, process_orders_on_close=false, max_bars_back=600)
 
 // ───────────────────────────── Inputs ─────────────────────────────
-mode = input.string("v2.2 (close confirmation)", "MODE", options=["v2.2 (close confirmation)", "Strict (v2.1)", "v2.2 New York only (12:00-15:45)", "More trades: no daily bias", "More trades: reward/risk 1.0", "Most trades: no bias + RR 1.0"], group="Mode (backtested trade-offs: more trades = less edge per trade)")
+mode = input.string("v2.2 (close confirmation)", "MODE", options=["v2.2 (close confirmation)", "Strict (v2.1)", "v2.2 New York only (12:00-15:45)", "More trades: no daily bias", "More trades: reward/risk 1.0", "Most trades: no bias + RR 1.0", "EVERY DAY: v2.2 + forced trade at 13:30 UTC (tested: loses)"], group="Mode (backtested trade-offs: more trades = less edge per trade)")
+fbH       = input.int(13, "Every-day mode: forced trade hour (UTC, bar open)", minval=0, maxval=23, group="Mode (backtested trade-offs: more trades = less edge per trade)")
+fbM       = input.int(30, "Every-day mode: forced trade minute", minval=0, maxval=59, group="Mode (backtested trade-offs: more trades = less edge per trade)")
+fbAtr     = input.float(1.5, "Every-day mode: stop = × ATR14 (target = reward/risk × that)", step=0.25, group="Mode (backtested trade-offs: more trades = less edge per trade)")
 gTrend   = "Trend and setup (L1/L3)"
 adxLen    = input.int(14, "ADX / DI length", minval=5, group=gTrend)
 adxThr    = input.float(30.0, "ADX armed threshold", step=1, group=gTrend)
@@ -99,6 +102,8 @@ useBiasE = mode == "More trades: no daily bias" or mode == "Most trades: no bias
 minRRE   = mode == "More trades: reward/risk 1.0" or mode == "Most trades: no bias + RR 1.0" ? 1.0 : minRR
 confirmE = mode == "v2.2 (close confirmation)" or mode == "v2.2 New York only (12:00-15:45)"
 nyOnlyE  = mode == "v2.2 New York only (12:00-15:45)"
+dailyE   = mode == "EVERY DAY: v2.2 + forced trade at 13:30 UTC (tested: loses)"
+fbMin    = fbH * 60 + fbM
 
 // ───────────────────────────── Indicators ─────────────────────────────
 [diPlus, diMinus, adx] = ta.dmi(adxLen, adxLen)
@@ -200,6 +205,7 @@ var float curDayP    = 0.0
 var int   curDayK    = -1
 var int   lastTradeT = na
 var int   entryBar   = na
+var bool  pendMkt    = false   // pending order is a market order (every-day mode), not a stop order
 
 inPos = strategy.position_size != 0
 string event = ""
@@ -254,6 +260,7 @@ if inPos and not inPos[1]
 if not inPos and inPos[1]
     event := "EXIT: trade closed (" + strategy.closedtrades.exit_comment(strategy.closedtrades - 1) + ")"
     pendSide := 0
+    pendMkt  := false
     initStop := na
     runStop  := na
     t1Level  := na
@@ -332,6 +339,7 @@ if inPos
 // pending state is consumed by the fill
 if inPos and pendSide != 0
     pendSide := 0
+    pendMkt  := false
 
 // Order size: risk % of equity ÷ stop distance, then capped by margin use and by max lots (a tight stop must not
 // turn into a position the account cannot carry; a 1.25 USD stop at 0.5 % risk would be 2 lots = 78 % margin)
@@ -349,6 +357,7 @@ if not inPos and pendSide != 0
         strategy.cancel_all()
         event := "CANCEL pending order (" + (mod >= cutMin ? "16:00 cut-off" : inNews ? "news window" : deep ? "deep break of EMA" : adx < adxCancel ? "ADX fell" : dayHalt or wkHalt ? "daily/weekly stop" : acctHalt ? "account guard" : "expired") + ")"
         pendSide := 0
+        pendMkt  := false
     else
         seqLow  := math.min(seqLow, low)
         seqHigh := math.max(seqHigh, high)
@@ -443,6 +452,40 @@ if canSignal and armed and touch and confOk and not na(atr) and not na(adx)
             else
                 pendSide := 0
 
+// ───────────────────────────── Trigger C: forced daily trade (MODE "EVERY DAY") ─────────────────────────────
+// Research (VALIDATION_REPORT_v2.md §8): the forced trades lost -0.03 to -0.12 R each with 40-87 R drawdowns. Kept only
+// because it was asked for; the account guard will halt it long before the account is lost.
+if dailyE and canSignal and pendSide == 0 and tradesDay == 0 and mod == fbMin and not na(atr)
+    int sideC = 0
+    if useBiasE
+        sideC := biasLong and not biasShort ? 1 : biasShort and not biasLong ? -1 : 0
+    else
+        sideC := longDir ? 1 : -1
+    if sideC != 0
+        distC  = fbAtr * atr
+        okSanC = stopSan <= 0 or na(dAtr) or distC <= stopSan * dAtr
+        qtyC   = f_qty(distC)
+        if okSanC and qtyC >= qtyStep
+            pendSide   := sideC
+            pendMkt    := true
+            pendLevel  := close
+            pendTarget := sideC == 1 ? close + minRRE * distC : close - minRRE * distC
+            pendBuf    := 0.0
+            seqLow     := sideC == 1 ? close - distC : low
+            seqHigh    := sideC == 1 ? high : close + distC
+            firstBar   := bar_index
+            lastTouch  := bar_index
+            riskPerOz  := distC
+            entryQty   := qtyC
+            initStop   := sideC == 1 ? close - distC : close + distC
+            runStop    := initStop
+            t1Level    := pendTarget
+            if sideC == 1
+                strategy.entry("L", strategy.long, qty=qtyC, comment="daily buy")
+            else
+                strategy.entry("S", strategy.short, qty=qtyC, comment="daily sell")
+            event := "DAILY TRADE: " + (sideC == 1 ? "BUY" : "SELL") + " at market now, stop " + str.tostring(initStop, "#.##") + ", target " + str.tostring(pendTarget, "#.##") + ", " + str.tostring(qtyC / 100, "#.##") + " lot"
+
 // count entries per day
 if inPos and not inPos[1]
     tradesDay += 1
@@ -489,7 +532,7 @@ else if inPos
 else if pendSide != 0
     statusTxt := "PENDING ORDER"
     whatToDo := "PLACE THIS ORDER IN MT5 NOW"
-    orderTxt := (isLongNow ? "BUY STOP " : "SELL STOP ") + str.tostring(entryNow, "#.##") + "  |  SL " + str.tostring(stopNow, "#.##") + "  |  TP " + str.tostring(tgtNow, "#.##") + "  |  " + str.tostring(lotsNow, "#.##") + " lot"
+    orderTxt := (pendMkt ? (isLongNow ? "BUY AT MARKET (~" : "SELL AT MARKET (~") + str.tostring(entryNow, "#.##") + ")" : (isLongNow ? "BUY STOP " : "SELL STOP ") + str.tostring(entryNow, "#.##")) + "  |  SL " + str.tostring(stopNow, "#.##") + "  |  TP " + str.tostring(tgtNow, "#.##") + "  |  " + str.tostring(lotsNow, "#.##") + " lot"
 else if acctHalt
     whatToDo := "DO NOTHING. Account guard: " + (haltReason != "" ? haltReason : flatReason) + "."
 else if dayHalt or wkHalt
