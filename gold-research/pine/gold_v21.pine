@@ -15,7 +15,7 @@
 //
 // WHAT IT CANNOT DO: read the news calendar (set the blackout inputs by hand on news days), see 1-minute lows inside a
 // 15-minute bar before the fill (stops use 15-minute lows), or know your broker's live spread.
-strategy("Gold v2.1", shorttitle="Gold v2.1", overlay=true, pyramiding=0,
+strategy("Gold v2.1", shorttitle="Gold v2.1", overlay=true, pyramiding=0, max_labels_count=500,
      initial_capital=50000, currency=currency.USD, default_qty_type=strategy.fixed, default_qty_value=1,
      commission_type=strategy.commission.cash_per_contract, commission_value=0.15, slippage=5,
      margin_long=5, margin_short=5,   // 1:20 leverage; without this TradingView demands 100 % cash and refuses every order
@@ -129,6 +129,7 @@ var int   consec     = 0
 var bool  dayHalt    = false
 var bool  wkHalt     = false
 var int   closedPrev = 0
+var float posPnl     = 0.0
 
 inPos = strategy.position_size != 0
 string event = ""
@@ -149,6 +150,7 @@ if weekKey != wkKey
 if strategy.closedtrades > closedPrev
     for i = closedPrev to strategy.closedtrades - 1
         p = strategy.closedtrades.profit(i)
+        posPnl += p
         r = na(riskPerOz) or na(entryQty) or entryQty == 0 ? 0.0 : p / (riskPerOz * entryQty)
         dayR  += r
         wkR   += r
@@ -161,6 +163,7 @@ if strategy.closedtrades > closedPrev
 
 // just filled
 if inPos and not inPos[1]
+    posPnl := 0.0
     event := (strategy.position_size > 0 ? "BUY" : "SELL") + " FILLED at " + str.tostring(strategy.position_avg_price, "#.##") + ". Stop " + str.tostring(initStop, "#.##") + ", take half at " + str.tostring(t1Level, "#.##")
 
 // position just closed → clear
@@ -321,23 +324,34 @@ if event != ""
     alert(event, alert.freq_once_per_bar_close)
 
 // ───────────────────────────── Simple visuals ─────────────────────────────
-plot(ema, "EMA20", color=color.new(color.aqua, 0), linewidth=2)
+// Turn OFF TradingView's own markers once: strategy settings (gear) → Style → untick "Trades on chart".
+plot(ema, "EMA20", color=color.new(color.aqua, 40), linewidth=1)
 bgcolor(useBias ? (biasLong ? color.new(color.green, 94) : biasShort ? color.new(color.red, 94) : na) : na, title="Daily bias")
 bgcolor(not inWindow ? color.new(color.gray, 90) : na, title="Window closed")
+justIn  = inPos and not inPos[1]
+justOut = not inPos and inPos[1]
+plotshape(justIn and strategy.position_size > 0, "BUY", style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.white, text="BUY", size=size.normal)
+plotshape(justIn and strategy.position_size < 0, "SELL", style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, text="SELL", size=size.normal)
+if justOut
+    won = posPnl > 0
+    label.new(bar_index, won ? low : high, (won ? "WON +" : "LOST ") + str.tostring(posPnl, "#") + " USD", style=won ? label.style_label_up : label.style_label_down, color=won ? color.new(color.green, 0) : color.new(color.red, 0), textcolor=color.white, size=size.normal)
 isLongNow = inPos ? strategy.position_size > 0 : pendSide == 1
 entryNow  = inPos ? strategy.position_avg_price : pendLevel
 stopNow   = inPos ? runStop : (pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf)
 tgtNow    = inPos ? t1Level : pendTarget
 lotsNow   = na(entryQty) ? na : entryQty / 100
-string whatToDo = "WAIT (no setup)"
+string whatToDo = "DO NOTHING. No setup yet."
+string orderTxt = "-"
 if inPos
-    whatToDo := t1Done ? "HOLD THE REST. STOP " + str.tostring(stopNow, "#.##") + ". OUT AT 20:50 UTC" : "HOLD. STOP " + str.tostring(stopNow, "#.##") + " / TAKE HALF AT " + str.tostring(tgtNow, "#.##")
+    whatToDo := t1Done ? "IN A TRADE. Half is closed. Keep the stop at " + str.tostring(stopNow, "#.##") + ". Close the rest at 20:50 UTC." : "IN A TRADE. Do nothing. Stop " + str.tostring(stopNow, "#.##") + ", take half at " + str.tostring(tgtNow, "#.##") + "."
+    orderTxt := (isLongNow ? "BOUGHT at " : "SOLD at ") + str.tostring(entryNow, "#.##")
 else if pendSide != 0
-    whatToDo := (isLongNow ? "PLACE BUY STOP " : "PLACE SELL STOP ") + str.tostring(entryNow, "#.##")
+    whatToDo := "PLACE THIS ORDER IN MT5 NOW"
+    orderTxt := (isLongNow ? "BUY STOP " : "SELL STOP ") + str.tostring(entryNow, "#.##") + "  |  SL " + str.tostring(stopNow, "#.##") + "  |  TP " + str.tostring(tgtNow, "#.##") + "  |  " + str.tostring(lotsNow, "#.##") + " lot"
 else if dayHalt or wkHalt
-    whatToDo := "STOP FOR TODAY"
+    whatToDo := "DO NOTHING. Daily or weekly loss limit reached."
 else if not inWindow
-    whatToDo := "WAIT (window closed)"
+    whatToDo := "DO NOTHING. Trading window closed (07:00-15:45 UTC)."
 var box bxR = na
 var box bxG = na
 var label lbl = na
@@ -346,17 +360,11 @@ box.delete(bxG)
 label.delete(lbl)
 if barstate.islast
     if pendSide != 0 or inPos
-        bxR := box.new(bar_index - 12, math.max(entryNow, stopNow), bar_index + 12, math.min(entryNow, stopNow), bgcolor=color.new(color.red, 75), border_color=color.red)
-        bxG := box.new(bar_index - 12, math.max(entryNow, tgtNow), bar_index + 12, math.min(entryNow, tgtNow), bgcolor=color.new(color.green, 75), border_color=color.green)
-    lbl := label.new(bar_index + 2, high + 2 * atr, whatToDo, style=label.style_label_lower_left, color=inPos ? color.green : pendSide != 0 ? color.orange : color.gray, textcolor=color.white, size=size.large)
-var table tb = table.new(position.top_right, 2, 5, border_width=1)
-f_cell(r, k, v, c) =>
-    table.cell(tb, 0, r, k, text_color=color.white, bgcolor=color.new(color.black, 10), text_size=size.normal)
-    table.cell(tb, 1, r, v, text_color=color.white, bgcolor=color.new(c, 25), text_size=size.normal)
+        bxR := box.new(bar_index - 12, math.max(entryNow, stopNow), bar_index + 12, math.min(entryNow, stopNow), bgcolor=color.new(color.red, 70), border_color=color.red, text="RISK", text_color=color.white, text_size=size.small)
+        bxG := box.new(bar_index - 12, math.max(entryNow, tgtNow), bar_index + 12, math.min(entryNow, tgtNow), bgcolor=color.new(color.green, 70), border_color=color.green, text="REWARD", text_color=color.white, text_size=size.small)
+    lbl := label.new(bar_index + 3, close, whatToDo, style=label.style_label_left, color=inPos ? color.new(color.green, 0) : pendSide != 0 ? color.new(color.orange, 0) : color.new(color.gray, 0), textcolor=color.white, size=size.large)
+var table tb = table.new(position.top_center, 1, 3, border_width=2)
 if barstate.islast
-    f_cell(0, "WHAT TO DO", whatToDo, inPos ? color.green : pendSide != 0 ? color.orange : color.gray)
-    f_cell(1, "DIRECTION TODAY", useBias ? (biasLong ? "ONLY BUY" : biasShort ? "ONLY SELL" : "none") : "both", biasLong ? color.green : color.red)
-    f_cell(2, "ENTER AT", pendSide != 0 or inPos ? str.tostring(entryNow, "#.##") : "-", color.gray)
-    f_cell(3, "STOP LOSS  /  TAKE PROFIT", pendSide != 0 or inPos ? str.tostring(stopNow, "#.##") + "  /  " + str.tostring(tgtNow, "#.##") : "-", color.gray)
-    f_cell(4, "LOT SIZE", pendSide != 0 or inPos ? str.tostring(lotsNow, "#.##") + " lot" : "-", color.gray)
-plotshape(armed and touch and inWindow and not inPos, "Touch bar in trend", style=shape.circle, location=location.belowbar, color=color.new(color.orange, 0), size=size.tiny)
+    table.cell(tb, 0, 0, whatToDo, text_color=color.white, bgcolor=inPos ? color.new(color.green, 0) : pendSide != 0 ? color.new(color.orange, 0) : color.new(color.gray, 0), text_size=size.large)
+    table.cell(tb, 0, 1, orderTxt, text_color=color.white, bgcolor=color.new(color.black, 0), text_size=size.large)
+    table.cell(tb, 0, 2, "Today: " + (useBias ? (biasLong ? "ONLY BUY" : "ONLY SELL") : "buy or sell") + "   |   Window " + (inWindow ? "OPEN" : "closed"), text_color=color.white, bgcolor=color.new(color.black, 0), text_size=size.normal)
