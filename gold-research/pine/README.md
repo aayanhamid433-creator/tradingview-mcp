@@ -44,7 +44,9 @@
 
 | Mode | What changes | Out-of-sample on HistData (results/summary_v2.md) |
 |---|---|---|
-| Strict (v2.1) | default | 61 trades, +0.339 R, PF 1.74 |
+| v2.2 (close confirmation) | **default**; touch bar must close on the trend side of EMA20 | 43 trades, +0.502 R, PF 2.17, max DD −5.2 R |
+| Strict (v2.1) | no confirmation | 55 trades, +0.414 R, PF 1.93 |
+| v2.2 New York only | signals 12:00–15:45 UTC only | 21 trades, +1.03 R, PF 5.2, but negative in development; small sample |
 | More trades: no daily bias | both directions | 158 trades, +0.179 R, PF 1.28 |
 | More trades: reward/risk 1.0 | min RR 1.0 | 110 trades, +0.205 R, PF 1.45 |
 | Most trades: no bias + RR 1.0 | both | not run in the research; expect the most trades and the least edge per trade |

@@ -66,3 +66,18 @@ At σ ≈ 1.4 R per trade (observed) and a hoped-for 0.3 R edge, distinguishing 
 ## 6. Files
 
 backtest/engine_v2.py, analyze_v2.py, validate_engine_v2.py; results/V2_*/{trades.csv, skips.csv, config.json}; results/summary_v2.md, summary_v2.json, VALIDATION_MECHANICS_v2.md.
+
+## 7. v2.2 candidates (added 2026-11-12, fourth look at the same data)
+
+Aayan asked for the strategy to be improved. Three principled changes that no earlier pass had tested were run through the same engine and validator (`backtest/engine_v2.py`, variants V2_J/K/L):
+
+| variant | dev n / mean R | validation n / mean R / PF | final test n / mean R / PF | OOS n / mean R / PF | OOS 90 % CI | OOS max DD | OOS mean R ex-top-5 |
+|---|---|---|---|---|---|---|---|
+| v2.1 (reference) | 43 / -0.130 | 21 / +0.920 / 2.87 | 34 / +0.101 / 1.24 | 55 / +0.414 / 1.93 | [+0.030, +0.851] | -7.7 | -0.022 |
+| V2_K: touch bar must close on the trend side of EMA20 | 29 / -0.023 | 17 / +0.978 / 3.01 | 26 / +0.191 / 1.49 | 43 / +0.502 / 2.17 | [+0.043, +1.028] | -5.2 | -0.023 |
+| V2_J: New York signals only (12:00–15:45 UTC) | 23 / -0.515 | 10 / +1.106 / 3.71 | 11 / +0.955 / 11.44 | 21 / +1.027 / 5.24 | [+0.437, +1.693] | -2.0 | +0.325 |
+| V2_L: both | 14 / -0.277 | 6 / +1.437 / 5.23 | 9 / +0.985 / 9.80 | 15 / +1.166 / 6.74 | [+0.455, +2.017] | -1.1 | +0.289 |
+
+**Reading.** The close-confirmation rule improves every out-of-sample statistic and, unlike every other variant so far, also improves the development period (−0.13 → −0.02 R) while keeping a usable trade count. It is adopted as **v2.2** (P7). The New York-only window again looks best out of sample and again loses in development on a small sample, the signature of a regime artefact; it remains an option (P1), not the default. Fourth-look caveat: all of these were chosen after seeing earlier results on this data; the forward test on the broker account is the only clean evidence.
+
+**v2.2 = v2.1 + touch-bar close confirmation.** Pine script default MODE set to v2.2; v2.1 and New York-only remain selectable.

@@ -22,7 +22,7 @@ strategy("Gold v2.1", shorttitle="Gold v2.1", overlay=true, pyramiding=0, max_la
      calc_on_every_tick=false, process_orders_on_close=false, max_bars_back=600)
 
 // ───────────────────────────── Inputs ─────────────────────────────
-mode = input.string("Strict (v2.1)", "MODE", options=["Strict (v2.1)", "More trades: no daily bias", "More trades: reward/risk 1.0", "Most trades: no bias + RR 1.0"], group="Mode (backtested trade-offs: more trades = less edge per trade)")
+mode = input.string("v2.2 (close confirmation)", "MODE", options=["v2.2 (close confirmation)", "Strict (v2.1)", "v2.2 New York only (12:00-15:45)", "More trades: no daily bias", "More trades: reward/risk 1.0", "Most trades: no bias + RR 1.0"], group="Mode (backtested trade-offs: more trades = less edge per trade)")
 gTrend   = "Trend and setup (L1/L3)"
 adxLen    = input.int(14, "ADX / DI length", minval=5, group=gTrend)
 adxThr    = input.float(30.0, "ADX armed threshold", step=1, group=gTrend)
@@ -76,6 +76,8 @@ showLvls  = input.bool(true, "Show entry / stop / target", group=gPlot)
 // effective settings from MODE
 useBiasE = mode == "More trades: no daily bias" or mode == "Most trades: no bias + RR 1.0" ? false : useBias
 minRRE   = mode == "More trades: reward/risk 1.0" or mode == "Most trades: no bias + RR 1.0" ? 1.0 : minRR
+confirmE = mode == "v2.2 (close confirmation)" or mode == "v2.2 New York only (12:00-15:45)"
+nyOnlyE  = mode == "v2.2 New York only (12:00-15:45)"
 
 // ───────────────────────────── Indicators ─────────────────────────────
 [diPlus, diMinus, adx] = ta.dmi(adxLen, adxLen)
@@ -85,6 +87,7 @@ risingAbove = adx > adxThr and adx > adx[1]
 armed    = adx > adxThr and ta.barssince(risingAbove) <= adxLook
 longDir  = diPlus > diMinus
 touch    = low <= ema and high >= ema
+confOk   = not confirmE or (longDir ? close >= ema : close <= ema)   // v2.2: touch bar closes on the trend side
 
 // Previous completed daily bar (non-repainting: value of the bar that closed before the current intraday bar)
 dClose = request.security(syminfo.tickerid, "D", close[1],  lookahead=barmerge.lookahead_on)
@@ -97,7 +100,7 @@ biasShort = not useBiasE or (not na(dSma) and dClose < dSma)
 
 // ───────────────────────────── Time gates ─────────────────────────────
 mod      = hour(time, "UTC") * 60 + minute(time, "UTC")          // bar OPEN time, minutes of day
-sigLo    = sigStartH * 60 + sigStartM
+sigLo    = nyOnlyE ? 12 * 60 : sigStartH * 60 + sigStartM
 sigHi    = sigEndH * 60 + sigEndM
 cutMin   = cutH * 60 + cutM
 flatMin  = flatH * 60 + flatM
@@ -250,7 +253,7 @@ if not inPos and pendSide != 0
         seqLow  := math.min(seqLow, low)
         seqHigh := math.max(seqHigh, high)
         // re-arm on a later valid touch bar
-        if rearm and armed and touch and (pendSide == 1) == longDir and inWindow
+        if rearm and armed and touch and confOk and (pendSide == 1) == longDir and inWindow
             if pendSide == 1
                 pendLevel := high + entryOff
                 stopEst = seqLow - pendBuf
@@ -293,7 +296,7 @@ if not inPos and pendSide != 0
 
 // ───────────────────────────── New setup (Trigger A) ─────────────────────────────
 canSignal = not inPos and pendSide == 0 and inWindow and not inNews and not dayHalt and not wkHalt and tradesDay < maxDay
-if canSignal and armed and touch and not na(atr) and not na(adx)
+if canSignal and armed and touch and confOk and not na(atr) and not na(adx)
     side = longDir ? 1 : -1
     allowed = side == 1 ? biasLong : biasShort
     if allowed

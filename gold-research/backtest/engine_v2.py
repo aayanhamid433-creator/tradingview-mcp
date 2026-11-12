@@ -37,6 +37,7 @@ V2_CONFIG.update(dict(
     partial_exit=True, partial_frac=0.5, be_offset=0.10,
     trail_mult=3.0,
     trigger_a=True, trigger_b=False,
+    confirm_close=False,               # touch bar must close on the trend side of the EMA
     trig_b_start="07:00", trig_b_end="10:45", trig_b_adx=20.0, trig_b_valid_bars=2, trig_b_stop_cap_atr=2.0,
 ))
 
@@ -51,6 +52,10 @@ VARIANTS = {
     "V2_G_nostops":    dict(daily_stop_losses=None, daily_stop_R=None, weekly_stop_R=None),
     "V2_H_coststress": dict(spread=0.50, slippage=0.15),
     "V2_I_v1window":   dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00"),
+    # v2.2 candidates (added 2026-11-12; fourth look at the same data, see VALIDATION_REPORT_v2.md caveat)
+    "V2_J_ny_only":    dict(signal_start="12:00", signal_end="15:45", pending_cutoff="16:00"),
+    "V2_K_confirm":    dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True),
+    "V2_L_ny_confirm": dict(signal_start="12:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True),
     # regression check: must reproduce V0_base exactly
     "V2_v1compat":     dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", min_rr=1.0, bias_mode=None,
                             news_gate=None, daily_stop_losses=None, daily_stop_R=None, weekly_stop_R=None, monday_gap_gate=False,
@@ -257,7 +262,8 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
                 elif i >= pending["last_touch_idx"] + cfg["expiry_bars"]: log_skip(pending["first_idx"], side, "EXPIRED_unfilled", trig="A"); pending = None
                 else:
                     pending["seq_low"] = min(pending["seq_low"], lo[i]); pending["seq_high"] = max(pending["seq_high"], hi[i])
-                if pending is not None and cfg["rearm"] and armed[i] and touch[i] and ((side == "long") == bool(long_dir[i])) and in_window:
+                conf_ok = (not cfg["confirm_close"]) or (cl[i] >= ema[i] if side == "long" else cl[i] <= ema[i])
+                if pending is not None and cfg["rearm"] and armed[i] and touch[i] and ((side == "long") == bool(long_dir[i])) and in_window and conf_ok:
                     if side == "long":
                         pending["level"] = hi[i] + cfg["entry_offset"]; pending["seq_low"] = min(pending["seq_low"], lo[i])
                         stop_est = pending["seq_low"] - pending["buffer"]; rr = (pending["target"] - pending["level"]) / (pending["level"] - stop_est)
@@ -287,6 +293,8 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
         # ---- Trigger A
         if cfg["trigger_a"] and armed[i] and touch[i]:
             side = "long" if long_dir[i] else "short"
+            if cfg["confirm_close"] and ((side == "long" and cl[i] < ema[i]) or (side == "short" and cl[i] > ema[i])):
+                log_skip(i, side, "WAIT_no_close_confirmation"); continue
             if allowed is None: log_skip(i, side, "WAIT_bias_undefined"); continue
             if allowed != "both" and allowed != side: log_skip(i, side, "WAIT_bias_direction", bias=allowed); continue
             if cfg["news_gate"] and in_news(close_ts): log_skip(i, side, "WAIT_news_window"); continue

@@ -1,6 +1,6 @@
 # PROJECT_STATE — Gold trading research (Aayan)
 
-Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, baseline). Candidate: **v2.0 CANDIDATE** (GOLD_PLAYBOOK_v2_CANDIDATE.md). Validation status: v1.0 **INCONCLUSIVE**; v2.0 backtest on HistData **INCONCLUSIVE** (VALIDATION_REPORT_v2.md; contaminated by design, can only reject layers: Trigger B, momentum vote and the widened window are rejected). Use status for any chart analysis: **UNVALIDATED DEMO**.
+Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, baseline). Candidate: **v2.2** (= v2.1 + close confirmation, P7; GOLD_PLAYBOOK_v2_CANDIDATE.md + VALIDATION_REPORT_v2.md §7). Validation status: v1.0 **INCONCLUSIVE**; v2.0 backtest on HistData **INCONCLUSIVE** (VALIDATION_REPORT_v2.md; contaminated by design, can only reject layers: Trigger B, momentum vote and the widened window are rejected). Use status for any chart analysis: **UNVALIDATED DEMO**.
 
 ## Timeline of this session (for audit of ordering)
 1. 00:11 UTC — tool check; market-data hosts blocked; environment allowlist created and approved; web research delegated to four agents.
@@ -42,6 +42,7 @@ Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, base
 | P2 | raise minimum reward/risk to 1.5 | V7 slightly better and fewer trades; not significant | same as P1 |
 | P3 | replace constant spread with time-of-day spread from broker data | realism | after broker export |
 | P4 | add DST-aware session windows | London/New York local times shift by one hour for part of the year | after broker export |
+| P7 | **v2.2** = v2.1 + touch bar must close on the trend side of EMA20 | V2_K: OOS 43 trades, +0.502 R, PF 2.17, max DD −5.2 R, CI [+0.043, +1.028]; development improves to −0.023 (VALIDATION_REPORT_v2.md §7); fourth look at the same data | Pine default MODE; first clean test = forward test on the funded account |
 | P6 | **v2.1** = v2.0 minus Trigger B, minus momentum vote, window 07:00–15:45 | on HistData this is V2_I-like: 55 OOS trades, +0.414 R, PF 1.93, max DD −7.7 R, CI [+0.030, +0.851]; but it is the third look at the same data and rests on 2025 runners | first clean test = broker export and the paper trade; never re-tuned on HistData |
 | P5 | v2.0 CANDIDATE: L1 daily bias (SMA200 + 12-1 momentum), news gate, min RR 1.5, 50 % partial at T1 + 3×ATR Chandelier trail, 0.5 % risk with Turtle drawdown scaling, three-strike / −2 R daily / −4 R weekly stops, Trigger B breakout OFF | Aayan asked for the documented gold methods to be combined; each element is a switchable layer with its own evidence label | pre-registered variants V2-A…V2-I in GOLD_PLAYBOOK_v2_CANDIDATE.md §11; paper trade per §12; recommended engine extension per §13 (HistData result is contaminated for P1/P2/bias and can only reject layers) |
 
