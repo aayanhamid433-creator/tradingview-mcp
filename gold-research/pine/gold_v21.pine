@@ -51,6 +51,7 @@ usePartial= input.bool(true, "50 % off at T1, stop to breakeven, trail remainder
 partPct   = input.float(50, "Partial %", minval=10, maxval=90, step=10, group=gEntry)
 bePlus    = input.float(0.10, "Breakeven offset after T1 (USD)", step=0.05, group=gEntry)
 trailMult = input.float(3.0, "Chandelier trail × ATR on remainder", step=0.5, group=gEntry)
+maxHoldB  = input.int(0, "Max hold in 15-min bars after the fill bar (0 = off; 1 = out within 15-30 min). Research: a 15-min cap keeps ~1/5 of the edge", minval=0, group=gEntry)
 
 gTime    = "Session gates (L0), UTC"
 sigStartH = input.int(7,  "Signal window start hour", minval=0, maxval=23, group=gTime)
@@ -198,6 +199,7 @@ var float bestDay    = 0.0     // best closed-profit UTC day in the cycle
 var float curDayP    = 0.0
 var int   curDayK    = -1
 var int   lastTradeT = na
+var int   entryBar   = na
 
 inPos = strategy.position_size != 0
 string event = ""
@@ -262,6 +264,7 @@ if not inPos and inPos[1]
 // ───────────────────────────── Account guard (the Claude checks, in code) ─────────────────────────────
 if inPos and not inPos[1]
     lastTradeT := time
+    entryBar   := bar_index
 dayUsed  = dayEq0 - strategy.equity                       // USD lost since 00:00 UTC, open P&L included
 dayLim   = dayEq0 * dailyDDPct / 100                      // firm breach level
 trFloor  = peakEq * (1 - trailDDPct / 100)                // firm trailing floor
@@ -295,6 +298,9 @@ else if acctHalt and not acctHalt[1]
 if inPos and mod >= flatMin
     strategy.close_all(comment="time_exit")
     event := "EXIT at market now: time exit"
+if inPos and maxHoldB > 0 and not na(entryBar) and bar_index - entryBar >= maxHoldB
+    strategy.close_all(comment="max_hold")
+    event := "EXIT at market now: max hold reached"
 
 // ───────────────────────────── Position management ─────────────────────────────
 if inPos
