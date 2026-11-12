@@ -39,3 +39,14 @@
 - Daily bars are TradingView's (exchange day) rather than the 23:00 UTC session day used in the research.
 - Fill prices are TradingView's (one price series, no bid/ask); commission input stands in for spread.
 - The script has not been compiled here; if the Pine editor reports an error, paste it back and it will be fixed.
+
+## MODE input (added 2026-11-12)
+
+| Mode | What changes | Out-of-sample on HistData (results/summary_v2.md) |
+|---|---|---|
+| Strict (v2.1) | default | 61 trades, +0.339 R, PF 1.74 |
+| More trades: no daily bias | both directions | 158 trades, +0.179 R, PF 1.28 |
+| More trades: reward/risk 1.0 | min RR 1.0 | 110 trades, +0.205 R, PF 1.45 |
+| Most trades: no bias + RR 1.0 | both | not run in the research; expect the most trades and the least edge per trade |
+
+More trades always meant less edge per trade in the research. None of the modes produces a trade every day; the loosest is roughly one every two sessions.
