@@ -16,6 +16,7 @@ Research and decision-support artefacts for Aayan's gold trading project. Nothin
 | CHART_SUBMISSION_TEMPLATE.md | what to send with screenshots |
 | FORWARD_TEST_PROTOCOL.md | demo protocol (not started) |
 | ACCOUNT_RULES.md | prop-firm account constraints translated into numbers and playbook gates |
+| pine/gold_v21.pine | TradingView script implementing v2.1: backtest + simple on-chart guidance + alerts (see pine/README.md) |
 | journal/GOLD_TRADE_JOURNAL.csv | journal schema |
 
 ## Reproduce the backtest
