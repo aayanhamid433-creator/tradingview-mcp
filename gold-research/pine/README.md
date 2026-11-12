@@ -79,6 +79,7 @@ Limits to know: equity is read at bar closes, so intrabar peaks and the exact 00
 
 - **Protective orders from the fill tick.** The stop and the first target are now attached to the entry order itself (`strategy.exit(..., from_entry=...)` issued together with `strategy.entry`), so they are live during the bar in which the entry fills. Before, they were only placed at the close of the fill bar, which let a reversal bar run past the stop and executed the stop at the next open. Expect more exits at the planned stop price and more T1 fills than in earlier runs.
 - **Consecutive losses are counted per trade,** not per exit leg (the T1 leg and the remainder are two rows in the List of Trades). The three-loss daily halt no longer trips after two losers.
+- **Trades that fill and exit inside one bar** (a stop hit in the fill bar) are now detected from the closed-trade counter, so they count towards the daily cap and the loss streak, clear the pending state and draw their WON/LOST label. Before, such a trade left a stale pending order that was re-submitted.
 - **Alerts accumulate within a bar** (`cancel | new setup`), so a cancel is never overwritten by a new order message.
 - **Force flat** default is now the 20:30 bar, so the close order fills at 20:45 UTC, five minutes before the research engine's 20:50 and well before the daily feed break. On-chart texts are built from the inputs.
 - **Max hold:** 1 = close at the end of the fill bar (within 15 minutes), 2 = within 30 minutes.

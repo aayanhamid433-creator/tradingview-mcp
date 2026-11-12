@@ -88,7 +88,7 @@ trailFlatUsd= input.float(200, "Close everything when equity is within USD of th
 protPct     = input.float(2.0, "Firm Protector: floating loss % of initial balance", step=0.5, group=gAcct)
 protFlatUsd = input.float(700, "Close everything when floating loss reaches USD", step=50, group=gAcct)
 consistPct  = input.float(20, "Consistency: best day may be at most % of cycle profit", step=5, group=gAcct)
-cycleStart  = input.time(timestamp("2026-11-12T00:00:00+0000"), "Payout cycle start (UTC)", group=gAcct)
+cycleStart  = input.time(timestamp("2026-11-12T00:00:00+00:00"), "Payout cycle start (UTC)", group=gAcct)
 inactDays   = input.int(30, "Inactivity limit, days without a trade", minval=5, group=gAcct)
 maxLots     = input.float(2.0, "Max lots per trade (hard cap)", minval=0.01, step=0.1, group=gAcct)
 maxMarginPct= input.float(50, "Max margin use, % of equity (firm closes positions at 80 %)", step=5, group=gAcct)
@@ -243,6 +243,24 @@ if utcDay != utcKey
     dayEq0 := nz(strategy.equity[1], strategy.initial_capital)
 peakEq := na(peakEq) ? strategy.equity : math.max(peakEq, strategy.equity)
 
+// just filled
+if inPos and not inPos[1]
+    posPnl := 0.0
+    if pendMkt
+        riskPerOz := math.abs(strategy.position_avg_price - initStop)
+    event := f_ev(event, (strategy.position_size > 0 ? "BUY" : "SELL") + " FILLED at " + str.tostring(strategy.position_avg_price, "#.##") + ". Stop " + str.tostring(initStop, "#.##") + ", take half at " + str.tostring(t1Level, "#.##"))
+
+// a trade that fills AND fully exits inside one bar never shows inPos == true; detect it from the closed-trade counter
+bool tripped   = strategy.closedtrades > closedPrev
+bool roundTrip = tripped and not inPos and not inPos[1]
+bool rtLong    = false
+if roundTrip
+    posPnl := 0.0
+    tradesDay += 1
+    rtLong := strategy.closedtrades.size(closedPrev) > 0
+    if pendMkt
+        riskPerOz := math.abs(strategy.closedtrades.entry_price(closedPrev) - initStop)
+
 // ───────────────────────────── Closed-trade accounting (R) ─────────────────────────────
 if strategy.closedtrades > closedPrev
     for i = closedPrev to strategy.closedtrades - 1
@@ -266,15 +284,8 @@ if strategy.closedtrades > closedPrev
     if wkR <= wkStopR
         wkHalt := true
 
-// just filled
-if inPos and not inPos[1]
-    posPnl := 0.0
-    if pendMkt
-        riskPerOz := math.abs(strategy.position_avg_price - initStop)
-    event := f_ev(event, (strategy.position_size > 0 ? "BUY" : "SELL") + " FILLED at " + str.tostring(strategy.position_avg_price, "#.##") + ". Stop " + str.tostring(initStop, "#.##") + ", take half at " + str.tostring(t1Level, "#.##"))
-
 // position just closed → clear; consecutive losses are counted per POSITION (T1 leg + remainder = one trade)
-if not inPos and inPos[1]
+if (not inPos and inPos[1]) or roundTrip
     event := f_ev(event, "EXIT: trade closed (" + strategy.closedtrades.exit_comment(strategy.closedtrades - 1) + ")")
     consec := posPnl <= 0 ? consec + 1 : 0
     if consec >= consecN
@@ -289,7 +300,7 @@ if not inPos and inPos[1]
     llSince  := na
 
 // ───────────────────────────── Account guard (the Claude checks, in code) ─────────────────────────────
-if inPos and not inPos[1]
+if (inPos and not inPos[1]) or roundTrip
     lastTradeT := time
     entryBar   := bar_index
 dayUsed  = dayEq0 - strategy.equity                       // USD lost since 00:00 UTC, open P&L included
@@ -555,8 +566,8 @@ plot(ema, "EMA20", color=color.new(color.aqua, 40), linewidth=1)
 bgcolor(useBiasE ? (biasLong ? color.new(color.green, 94) : biasShort ? color.new(color.red, 94) : na) : na, title="Daily bias")
 bgcolor(not inWindow ? color.new(color.gray, 90) : na, title="Window closed")
 justIn  = inPos and not inPos[1]
-justOut = not inPos and inPos[1]
-wasLong = strategy.position_size[1] > 0
+justOut = (not inPos and inPos[1]) or roundTrip
+wasLong = roundTrip ? rtLong : strategy.position_size[1] > 0
 plotshape(justIn and strategy.position_size > 0, "BUY", style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.white, text="BUY", size=size.large)
 plotshape(justIn and strategy.position_size < 0, "SELL", style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, text="SELL", size=size.large)
 if justOut
