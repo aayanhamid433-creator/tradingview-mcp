@@ -14,6 +14,7 @@ Research and decision-support artefacts for Aayan's gold trading project. Nothin
 | results/DATA_FACTS.md | volatility by session/year, session drift, regime and gap statistics from the research data |
 | CHART_SUBMISSION_TEMPLATE.md | what to send with screenshots |
 | FORWARD_TEST_PROTOCOL.md | demo protocol (not started) |
+| ACCOUNT_RULES.md | prop-firm account constraints translated into numbers and playbook gates |
 | journal/GOLD_TRADE_JOURNAL.csv | journal schema |
 
 ## Reproduce the backtest
