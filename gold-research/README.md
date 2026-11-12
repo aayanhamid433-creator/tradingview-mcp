@@ -5,6 +5,7 @@ Research and decision-support artefacts for Aayan's gold trading project. Nothin
 | Read this first | Purpose |
 |---|---|
 | PROJECT_STATE.md | current version, status, blockers, next action |
+| GOLD_MARKET_PRIMER.md | plain-language guide to the gold market, its calendar, its drivers and this system's day |
 | GOLD_PLAYBOOK_v1.md | frozen v1.0 rules with SOURCE / PROPOSED / UNRESOLVED tags (baseline) |
 | GOLD_PLAYBOOK_v2_CANDIDATE.md | v2.0 candidate: layered combination of documented gold methods, UNTESTED, with pre-registered ablations |
 | VALIDATION_REPORT.md | v1.0: what was tested, results, verdict (INCONCLUSIVE), limitations |

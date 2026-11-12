@@ -50,3 +50,7 @@
 | Most trades: no bias + RR 1.0 | both | not run in the research; expect the most trades and the least edge per trade |
 
 More trades always meant less edge per trade in the research. None of the modes produces a trade every day; the loosest is roughly one every two sessions.
+
+## News blackout list (added 2026-11-12)
+
+The `Red-folder events` input holds UTC date-times (comma separated). No new order is placed, and any pending order is cancelled, on a bar that overlaps ±5 minutes of an event. The defaults cover the next weeks (CPI, NFP, FOMC, PCE/GDP days as known on 2026-11-12) and **must be verified and extended from Forex Factory every week**; times move one hour earlier in US summer time. Open positions are not closed by the gate: the account's rule only deducts profit on trades opened or closed inside the window.
