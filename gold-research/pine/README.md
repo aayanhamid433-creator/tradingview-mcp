@@ -1,6 +1,6 @@
 # pine/ — TradingView strategy for self-backtesting v2.1
 
-`gold_v21.pine` is one script that does three jobs: backtest engine for the Strategy Tester, simple on-chart guidance (instruction label, red risk box, green reward box, five-row table), and `alert()` messages for live or demo use (Create Alert → this script → "Any alert() function call": new setup, move stop order, filled, target hit, move stop, cancel, exit). It implements GOLD_PLAYBOOK_v2_CANDIDATE.md in its v2.1 form (trend-pullback trigger only, SMA200 daily bias, no momentum vote, 07:00–15:45 UTC window) with the sizing from ACCOUNT_RULES.md. Pine Script v6, strategy type, overlay.
+`gold_v21.pine` is one script that does four jobs (the fourth, the account guard, is described at the end): backtest engine for the Strategy Tester, simple on-chart guidance (instruction label, red risk box, green reward box, five-row table), and `alert()` messages for live or demo use (Create Alert → this script → "Any alert() function call": new setup, move stop order, filled, target hit, move stop, cancel, exit). It implements GOLD_PLAYBOOK_v2_CANDIDATE.md in its v2.1 form (trend-pullback trigger only, SMA200 daily bias, no momentum vote, 07:00–15:45 UTC window) with the sizing from ACCOUNT_RULES.md. Pine Script v6, strategy type, overlay.
 
 ## Setup in TradingView
 
@@ -56,3 +56,21 @@ More trades always meant less edge per trade in the research. None of the modes 
 ## News blackout list (added 2026-11-12)
 
 The `Red-folder events` input holds UTC date-times (comma separated). No new order is placed, and any pending order is cancelled, on a bar that overlaps ±5 minutes of an event. The defaults cover the next weeks (CPI, NFP, FOMC, PCE/GDP days as known on 2026-11-12) and **must be verified and extended from Forex Factory every week**; times move one hour earlier in US summer time. Open positions are not closed by the gate: the account's rule only deducts profit on trades opened or closed inside the window.
+
+## Account guard (added 2026-11-12): "powered by Claude", inside TradingView
+
+Pine Script cannot call the internet, so it cannot call Claude or any AI model. What it can do is run the same checks Claude runs on every chart review, as code, on every bar. The `Account guard` input group holds the Atlas Funded numbers from ACCOUNT_RULES.md; the bottom-right **ACCOUNT CHECK** table shows each one with a colour and a final verdict. It never predicts direction.
+
+| Row | What it measures | Green / orange / red |
+|---|---|---|
+| TODAY'S LOSS | equity now vs equity at 00:00 UTC, open P&L included (firm: 3 % = breach) | new trades stop at 2 % (1,000 USD); everything is closed at 2.5 % |
+| TRAILING FLOOR | highest equity so far × 0.94 (firm: 6 % trailing) | new trades stop within 500 USD of the floor; everything is closed within 200 USD |
+| FLOATING P&L | open profit or loss (firm Protector: −1,000 USD = positions closed, payout split halved) | everything is closed at −700 USD |
+| NEWS | minutes to the next event in the red-folder list; red while in the ±5-minute blackout | orange inside one hour |
+| CONSISTENCY | best UTC day's closed profit as % of closed profit since `Payout cycle start` (firm: max 20 %) | orange above 20 %: payout will be delayed, not a breach |
+| INACTIVITY | days since the last fill (firm: 30 days = breach) | orange from 20 days, red from 25 |
+| VERDICT | OK TO TAKE THE NEXT SETUP / NO NEW TRADES: reason / CLOSE EVERYTHING: reason | |
+
+When the guard halts, pending orders are cancelled, no new setup is placed, the top banner says why, and an alert fires once (`ACCOUNT GUARD: no new trades (...)`). When it says close, the script closes its own backtest position at the next bar open and the alert `ACCOUNT GUARD: CLOSE EVERYTHING IN MT5 NOW (...)` fires; in live use you still close the MT5 position yourself.
+
+Limits to know: equity is read at bar closes, so intrabar peaks and the exact 00:00 UTC equity are approximations (the firm uses tick equity); the script only sees its own trades, not discretionary ones in MT5; the 3-minute minimum hold cannot be enforced on 15-minute bars (a stop hit in the entry bar is a loss anyway, and losses are not deducted). In a multi-year backtest the trailing floor behaves like the real account: once equity falls 6 % from its peak the guard stops trading for good, which is what would have happened to the account. Turn `Account guard on` off to see the raw strategy through a drawdown, and on to see whether the account would have survived.
