@@ -42,3 +42,14 @@ Source: the trader agreement supplied by Aayan on 2026-11-12 (personal identifie
 ## What this week would have looked like under these rules
 
 - 2026-11-10 discretionary short, 1.00 lot, no stop: at −870 USD floating it was **130 USD from the first Protector trigger** (−1,000), which would have halved the payout split permanently. A 10 USD adverse move from entry does that at 1.00 lot. Playbook size for that trade (stop ~25 USD above entry) was 0.10 lot.
+
+## Risk budget decision (Aayan, 2026-11-12): 0.5 % to 1 % per trade
+
+Checked against the 6 % trailing floor using the worst drawdown each candidate produced in the research (results/summary_v2.md, weighted R, development period unless noted). The guard in gold_v21.pine stops new trades 500 USD above the floor, so the usable drawdown is about 5 %.
+
+| Candidate | Worst drawdown | at 0.5 % | at 0.75 % | at 1 % |
+|---|---|---|---|---|
+| v2.2 close confirmation (V2_K) | −7.1 R (dev); −5.2 R (test) | −3.6 % survives | −5.3 % halted by guard, 350 USD from breach | −7.1 % **breach** |
+| More trades: no daily bias (V2_A) | −25.7 R (dev); −22.2 R (test) | −12.9 % **breach** | breach | breach |
+
+Decision: **0.5 % (250 USD) on v2.2**. 1 % is not survivable on this account with the drawdowns already seen; 0.75 % survives only because the guard halts first. The "more trades" modes are not compatible with a 6 % trailing floor at any risk above 0.2 %, so they are off the table for this account whatever their total R. Reviewed again after 60 forward-test trades.
