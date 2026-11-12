@@ -329,23 +329,31 @@ entryNow  = inPos ? strategy.position_avg_price : pendLevel
 stopNow   = inPos ? runStop : (pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf)
 tgtNow    = inPos ? t1Level : pendTarget
 lotsNow   = na(entryQty) ? na : entryQty / 100
-whatToDo  = inPos ? (t1Done ? "HOLD THE REST. STOP " + str.tostring(stopNow, "#.##") + ". OUT AT 20:50 UTC" : "HOLD. STOP " + str.tostring(stopNow, "#.##") + " / TAKE HALF AT " + str.tostring(tgtNow, "#.##")) :
-            pendSide != 0 ? (isLongNow ? "PLACE BUY STOP " : "PLACE SELL STOP ") + str.tostring(entryNow, "#.##") :
-            dayHalt or wkHalt ? "STOP FOR TODAY" : not inWindow ? "WAIT (window closed)" : "WAIT (no setup)"
+string whatToDo = "WAIT (no setup)"
+if inPos
+    whatToDo := t1Done ? "HOLD THE REST. STOP " + str.tostring(stopNow, "#.##") + ". OUT AT 20:50 UTC" : "HOLD. STOP " + str.tostring(stopNow, "#.##") + " / TAKE HALF AT " + str.tostring(tgtNow, "#.##")
+else if pendSide != 0
+    whatToDo := (isLongNow ? "PLACE BUY STOP " : "PLACE SELL STOP ") + str.tostring(entryNow, "#.##")
+else if dayHalt or wkHalt
+    whatToDo := "STOP FOR TODAY"
+else if not inWindow
+    whatToDo := "WAIT (window closed)"
 var box bxR = na
 var box bxG = na
 var label lbl = na
-box.delete(bxR), box.delete(bxG), label.delete(lbl)
+box.delete(bxR)
+box.delete(bxG)
+label.delete(lbl)
 if barstate.islast
     if pendSide != 0 or inPos
         bxR := box.new(bar_index - 12, math.max(entryNow, stopNow), bar_index + 12, math.min(entryNow, stopNow), bgcolor=color.new(color.red, 75), border_color=color.red)
         bxG := box.new(bar_index - 12, math.max(entryNow, tgtNow), bar_index + 12, math.min(entryNow, tgtNow), bgcolor=color.new(color.green, 75), border_color=color.green)
     lbl := label.new(bar_index + 2, high + 2 * atr, whatToDo, style=label.style_label_lower_left, color=inPos ? color.green : pendSide != 0 ? color.orange : color.gray, textcolor=color.white, size=size.large)
 var table tb = table.new(position.top_right, 2, 5, border_width=1)
+f_cell(r, k, v, c) =>
+    table.cell(tb, 0, r, k, text_color=color.white, bgcolor=color.new(color.black, 10), text_size=size.normal)
+    table.cell(tb, 1, r, v, text_color=color.white, bgcolor=color.new(c, 25), text_size=size.normal)
 if barstate.islast
-    f_cell(r, k, v, c) =>
-        table.cell(tb, 0, r, k, text_color=color.white, bgcolor=color.new(color.black, 10), text_size=size.normal)
-        table.cell(tb, 1, r, v, text_color=color.white, bgcolor=color.new(c, 25), text_size=size.normal)
     f_cell(0, "WHAT TO DO", whatToDo, inPos ? color.green : pendSide != 0 ? color.orange : color.gray)
     f_cell(1, "DIRECTION TODAY", useBias ? (biasLong ? "ONLY BUY" : biasShort ? "ONLY SELL" : "none") : "both", biasLong ? color.green : color.red)
     f_cell(2, "ENTER AT", pendSide != 0 or inPos ? str.tostring(entryNow, "#.##") : "-", color.gray)
