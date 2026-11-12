@@ -1,0 +1,214 @@
+//@version=6
+// GOLD v2.1 SIGNALS — the simple version. Shows on the chart: BIAS, STATUS, ENTRY, STOP, TARGET, LOTS, and what to do now.
+// Same rules as gold_v21_strategy.pine (GOLD_PLAYBOOK_v2_CANDIDATE.md v2.1 + ACCOUNT_RULES.md), without the backtest engine.
+// Status: UNVALIDATED DEMO. It guides a demo/paper trade; it does not place orders.
+//
+// HOW TO READ IT
+//   Dashboard (top right):  BIAS = which direction is allowed today.  STATUS = WAIT / PENDING / IN TRADE / T1 HIT.
+//   Yellow line = entry stop order.  Red line = stop loss.  Green line = target (take 50 % here, then stop to breakeven, trail the rest).
+//   "DO NOW" row = the exact instruction for this bar.
+// ALERTS: Create Alert on this indicator → condition "Any alert() function call" → you get a message on every new instruction.
+indicator("Gold v2.1 Signals", shorttitle="Gold v2.1 Signals", overlay=true, max_lines_count=50, max_labels_count=50)
+
+// ───────────────────────────── Inputs ─────────────────────────────
+grp1 = "Account"
+acct     = input.float(50000, "Account size (USD)", group=grp1)
+riskPct  = input.float(0.5, "Risk per trade (%)", step=0.1, group=grp1)
+ozPerLot = input.float(100, "Ounces per 1.00 lot at your broker", group=grp1)
+
+grp2 = "Rules (leave as is unless you are testing a variant)"
+adxThr   = input.float(30, "ADX armed threshold", group=grp2)
+adxLook  = input.int(10, "ADX must have risen above threshold within N bars", group=grp2)
+adxCancel= input.float(25, "Cancel pending if ADX below", group=grp2)
+useBias  = input.bool(true, "Only trade in the daily SMA200 direction", group=grp2)
+entryOff = input.float(0.10, "Entry offset beyond touch bar (USD)", step=0.05, group=grp2)
+bufMin   = input.float(0.30, "Stop buffer minimum (USD)", step=0.05, group=grp2)
+bufAtr   = input.float(0.10, "Stop buffer × ATR", step=0.05, group=grp2)
+deepAtr  = input.float(0.5, "Cancel on close beyond EMA by × ATR", step=0.1, group=grp2)
+tgtLook  = input.int(20, "Target = extreme of last N bars", group=grp2)
+minRR    = input.float(1.5, "Minimum reward/risk", step=0.1, group=grp2)
+expiryN  = input.int(4, "Pending expires after N bars", group=grp2)
+trailMult= input.float(3.0, "Trail × ATR after target hit", step=0.5, group=grp2)
+bePlus   = input.float(0.10, "Breakeven offset after target (USD)", step=0.05, group=grp2)
+
+grp3 = "Session (UTC)"
+sigStart = input.int(7,  "Window start hour", group=grp3)
+sigEndH  = input.int(15, "Window end hour", group=grp3)
+sigEndM  = input.int(45, "Window end minute", group=grp3)
+cutH     = input.int(16, "Cancel pending at hour", group=grp3)
+flatH    = input.int(20, "Flat at hour", group=grp3)
+flatM    = input.int(50, "Flat at minute", group=grp3)
+
+// ───────────────────────────── Indicators ─────────────────────────────
+[diPlus, diMinus, adx] = ta.dmi(14, 14)
+ema = ta.ema(close, 20)
+atr = ta.atr(14)
+risingAbove = adx > adxThr and adx > adx[1]
+armed   = adx > adxThr and ta.barssince(risingAbove) <= adxLook
+longDir = diPlus > diMinus
+touch   = low <= ema and high >= ema
+dClose  = request.security(syminfo.tickerid, "D", close[1], lookahead=barmerge.lookahead_on)
+dSma    = request.security(syminfo.tickerid, "D", ta.sma(close, 200)[1], lookahead=barmerge.lookahead_on)
+biasTxt = not useBias ? "BOTH" : na(dSma) ? "n/a" : dClose > dSma ? "LONG" : "SHORT"
+biasLong  = not useBias or biasTxt == "LONG"
+biasShort = not useBias or biasTxt == "SHORT"
+
+mod      = hour(time, "UTC") * 60 + minute(time, "UTC")
+inWindow = mod >= sigStart * 60 and mod <= sigEndH * 60 + sigEndM
+pastCut  = mod >= cutH * 60
+flatNow  = mod >= flatH * 60 + flatM
+
+// ───────────────────────────── State ─────────────────────────────
+// status: 0 WAIT, 1 PENDING, 2 IN TRADE, 3 T1 HIT (trailing)
+var int   st        = 0
+var int   side      = 0
+var float level     = na
+var float stopLvl   = na
+var float target    = na
+var float buf       = na
+var float seqLow    = na
+var float seqHigh   = na
+var int   lastTouch = na
+var float entryPx   = na
+var float hhSince   = na
+var float llSince   = na
+var float lots      = na
+var string doNow    = "Wait for a setup"
+string event = ""
+
+f_lots(risk) => math.floor((acct * riskPct / 100) / (risk * ozPerLot) * 100) / 100
+
+// ---- manage an open (simulated) trade
+if st >= 2
+    hhSince := math.max(hhSince, high)
+    llSince := math.min(llSince, low)
+    stopHit = side == 1 ? low <= stopLvl : high >= stopLvl
+    tgtHit  = st == 2 and (side == 1 ? high > target : low < target)
+    if flatNow
+        event := "EXIT at market: 20:50 UTC time exit"
+        st := 0
+    else if stopHit
+        event := st == 2 ? "EXIT: stop loss hit at " + str.tostring(stopLvl, "#.##") : "EXIT: trailing stop hit at " + str.tostring(stopLvl, "#.##")
+        st := 0
+    else if tgtHit
+        st := 3
+        be = side == 1 ? entryPx + bePlus : entryPx - bePlus
+        stopLvl := side == 1 ? math.max(stopLvl, be) : math.min(stopLvl, be)
+        event := "TARGET HIT: close 50 % at " + str.tostring(target, "#.##") + ", move stop to " + str.tostring(stopLvl, "#.##")
+    if st == 3
+        tr = side == 1 ? hhSince - trailMult * atr : llSince + trailMult * atr
+        if side == 1 and tr > stopLvl and tr < low
+            stopLvl := tr
+        if side == -1 and tr < stopLvl and tr > high
+            stopLvl := tr
+
+// ---- manage a pending order
+if st == 1
+    deep = side == 1 ? close < ema - deepAtr * atr : close > ema + deepAtr * atr
+    filled = side == 1 ? high >= level : low <= level
+    if filled
+        seqLow  := math.min(seqLow, low)
+        seqHigh := math.max(seqHigh, high)
+        entryPx := level
+        stopLvl := side == 1 ? seqLow - buf : seqHigh + buf
+        hhSince := high
+        llSince := low
+        st := 2
+        event := (side == 1 ? "BUY" : "SELL") + " filled at " + str.tostring(level, "#.##") + ". Stop " + str.tostring(stopLvl, "#.##") + ", target " + str.tostring(target, "#.##")
+    else if pastCut or deep or adx < adxCancel or bar_index >= lastTouch + expiryN
+        event := "CANCEL pending order (" + (pastCut ? "16:00 cut-off" : deep ? "deep break of EMA" : adx < adxCancel ? "ADX fell" : "expired") + ")"
+        st := 0
+    else
+        seqLow  := math.min(seqLow, low)
+        seqHigh := math.max(seqHigh, high)
+        if armed and touch and (side == 1) == longDir and inWindow
+            level := side == 1 ? high + entryOff : low - entryOff
+            stopEst = side == 1 ? seqLow - buf : seqHigh + buf
+            rr = math.abs(target - level) / math.abs(level - stopEst)
+            if rr < minRR
+                event := "CANCEL: reward/risk fell below " + str.tostring(minRR)
+                st := 0
+            else
+                lastTouch := bar_index
+                lots := f_lots(math.abs(level - stopEst))
+                event := "MOVE " + (side == 1 ? "BUY STOP" : "SELL STOP") + " to " + str.tostring(level, "#.##")
+
+// ---- new setup
+if st == 0 and inWindow and armed and touch
+    s = longDir ? 1 : -1
+    if (s == 1 and biasLong) or (s == -1 and biasShort)
+        b  = math.max(bufMin, bufAtr * atr)
+        lv = s == 1 ? high + entryOff : low - entryOff
+        tg = s == 1 ? ta.highest(high, tgtLook) : ta.lowest(low, tgtLook)
+        se = s == 1 ? low - b : high + b
+        rr = math.abs(tg - lv) / math.abs(lv - se)
+        if rr >= minRR
+            st := 1
+            side := s
+            level := lv
+            target := tg
+            buf := b
+            seqLow := low
+            seqHigh := high
+            lastTouch := bar_index
+            lots := f_lots(math.abs(lv - se))
+            event := "NEW SETUP: place " + (s == 1 ? "BUY STOP" : "SELL STOP") + " at " + str.tostring(lv, "#.##") + ", stop " + str.tostring(se, "#.##") + ", target " + str.tostring(tg, "#.##") + ", " + str.tostring(lots, "#.##") + " lot"
+
+// ───────────────────────────── Instruction text ─────────────────────────────
+pendStop = st == 1 ? (side == 1 ? seqLow - buf : seqHigh + buf) : na
+rrNow = st == 1 ? math.abs(target - level) / math.abs(level - pendStop) : st >= 2 ? math.abs(target - entryPx) / math.abs(entryPx - stopLvl) : na
+doNow := st == 0 ? (not inWindow ? "Outside window. No new trades." : "Wait for a setup") :
+         st == 1 ? "Place " + (side == 1 ? "BUY STOP " : "SELL STOP ") + str.tostring(level, "#.##") + " | SL " + str.tostring(pendStop, "#.##") + " | TP " + str.tostring(target, "#.##") + " | " + str.tostring(lots, "#.##") + " lot" :
+         st == 2 ? "Hold. SL " + str.tostring(stopLvl, "#.##") + " | TP (50 %) " + str.tostring(target, "#.##") :
+                   "Trailing. SL " + str.tostring(stopLvl, "#.##") + ". Close rest at 20:50 UTC or stop."
+if event != ""
+    alert(event, alert.freq_once_per_bar_close)
+
+// ───────────────────────────── Drawing ─────────────────────────────
+plot(ema, "EMA20", color=color.new(color.aqua, 0), linewidth=2)
+bgcolor(useBias ? (biasTxt == "LONG" ? color.new(color.green, 93) : biasTxt == "SHORT" ? color.new(color.red, 93) : na) : na)
+plotshape(armed and touch and inWindow, "Touch bar in trend", style=shape.circle, location=location.belowbar, color=color.new(color.orange, 0), size=size.tiny)
+plotshape(st == 2 and st[1] == 1, "Filled", style=shape.triangleup, location=location.belowbar, color=color.new(color.yellow, 0), size=size.small)
+plotshape(st == 0 and st[1] >= 2, "Exit", style=shape.xcross, location=location.abovebar, color=color.new(color.white, 0), size=size.small)
+
+var line lnE = na
+var line lnS = na
+var line lnT = na
+var label lbE = na
+var label lbS = na
+var label lbT = na
+line.delete(lnE), line.delete(lnS), line.delete(lnT)
+label.delete(lbE), label.delete(lbS), label.delete(lbT)
+if st >= 1
+    e = st == 1 ? level : entryPx
+    sl = st == 1 ? pendStop : stopLvl
+    x1 = bar_index - 10
+    x2 = bar_index + 10
+    lnE := line.new(x1, e, x2, e, color=color.yellow, width=2)
+    lnS := line.new(x1, sl, x2, sl, color=color.red, width=2)
+    lnT := line.new(x1, target, x2, target, color=color.lime, width=2)
+    lbE := label.new(x2, e, (st == 1 ? "ENTRY " : "IN @ ") + str.tostring(e, "#.##"), style=label.style_label_left, color=color.yellow, textcolor=color.black, size=size.small)
+    lbS := label.new(x2, sl, "SL " + str.tostring(sl, "#.##"), style=label.style_label_left, color=color.red, textcolor=color.white, size=size.small)
+    lbT := label.new(x2, target, "TP " + str.tostring(target, "#.##"), style=label.style_label_left, color=color.lime, textcolor=color.black, size=size.small)
+
+// ───────────────────────────── Dashboard ─────────────────────────────
+var table tb = table.new(position.top_right, 2, 8, border_width=1)
+stTxt = st == 0 ? "WAIT" : st == 1 ? "PENDING" : st == 2 ? "IN TRADE" : "T1 HIT / TRAIL"
+stCol = st == 0 ? color.gray : st == 1 ? color.orange : color.green
+if barstate.islast
+    table.cell(tb, 0, 0, "BIAS",   text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 0, biasTxt,  text_color=color.white, bgcolor=biasTxt == "LONG" ? color.new(color.green, 30) : biasTxt == "SHORT" ? color.new(color.red, 30) : color.gray)
+    table.cell(tb, 0, 1, "ADX",    text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 1, str.tostring(adx, "#.#") + (armed ? " armed" : " not armed") + (longDir ? " +DI" : " -DI"), text_color=color.white, bgcolor=armed ? color.new(color.green, 30) : color.gray)
+    table.cell(tb, 0, 2, "WINDOW", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 2, inWindow ? "open 07:00-15:45 UTC" : "closed", text_color=color.white, bgcolor=inWindow ? color.new(color.green, 30) : color.gray)
+    table.cell(tb, 0, 3, "STATUS", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 3, stTxt,    text_color=color.white, bgcolor=color.new(stCol, 30))
+    table.cell(tb, 0, 4, "ENTRY / SL / TP", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 4, st == 0 ? "-" : str.tostring(st == 1 ? level : entryPx, "#.##") + " / " + str.tostring(st == 1 ? pendStop : stopLvl, "#.##") + " / " + str.tostring(target, "#.##"), text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 0, 5, "R:R / LOTS", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 5, st == 0 ? "-" : str.tostring(rrNow, "#.##") + " / " + str.tostring(lots, "#.##") + " lot (" + str.tostring(riskPct) + " % risk)", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 0, 6, "DO NOW", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 6, doNow, text_color=color.white, bgcolor=color.new(stCol, 30))
+    table.cell(tb, 0, 7, "EMA20 / ATR", text_color=color.white, bgcolor=color.new(color.black, 20))
+    table.cell(tb, 1, 7, str.tostring(ema, "#.##") + " / " + str.tostring(atr, "#.##"), text_color=color.white, bgcolor=color.new(color.black, 20))

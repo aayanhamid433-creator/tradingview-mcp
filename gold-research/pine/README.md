@@ -39,3 +39,7 @@
 - Daily bars are TradingView's (exchange day) rather than the 23:00 UTC session day used in the research.
 - Fill prices are TradingView's (one price series, no bid/ask); commission input stands in for spread.
 - The script has not been compiled here; if the Pine editor reports an error, paste it back and it will be fixed.
+
+## gold_v21_signals.pine — the simple on-chart version
+
+Same rules, no backtest engine. Add as an **indicator** on XAUUSD 15-minute. It draws a dashboard (bias, ADX, window, status, entry / stop / target, reward-to-risk, lots at your risk %, and a "DO NOW" instruction), three lines on the chart (yellow entry, red stop, green target), and fires an `alert()` message on every new instruction: new setup, move stop order, filled, target hit (close 50 %, stop to breakeven), trailing, cancel, exit. To receive them: Create Alert → this indicator → "Any alert() function call". Fills, stops and targets are simulated from 15-minute bars; your broker's actual fills will differ a little.
