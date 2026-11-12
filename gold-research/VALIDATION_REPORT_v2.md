@@ -81,3 +81,17 @@ Aayan asked for the strategy to be improved. Three principled changes that no ea
 **Reading.** The close-confirmation rule improves every out-of-sample statistic and, unlike every other variant so far, also improves the development period (−0.13 → −0.02 R) while keeping a usable trade count. It is adopted as **v2.2** (P7). The New York-only window again looks best out of sample and again loses in development on a small sample, the signature of a regime artefact; it remains an option (P1), not the default. Fourth-look caveat: all of these were chosen after seeing earlier results on this data; the forward test on the broker account is the only clean evidence.
 
 **v2.2 = v2.1 + touch-bar close confirmation.** Pine script default MODE set to v2.2; v2.1 and New York-only remain selectable.
+
+## 8. "One trade every day" (added 2026-11-12, fifth look at the same data)
+
+Aayan asked for the system to trade every day. Pre-registered before running: Trigger C, a market order on the next minute if the session day has had no entry by a fixed bar, stop 1.5 × ATR14(M15), first target at 1.5 × that distance, same partial / trail / 20:50 exits, same gates. Three direction and timing rules, all on top of v2.2 (`engine_v2.py` variants V2_M/N/O):
+
+| variant | forced trades (trig C) | C: dev mean R | C: validation mean R | C: final test mean R | C: all-period total R | whole system max DD (dev / val / test) | losing days |
+|---|---|---|---|---|---|---|---|
+| V2_M: 13:30 UTC, direction = daily SMA200 bias | 1,032 | −0.047 | −0.028 | +0.064 | −14.3 | −41 / −21 / −18 R | 59 % |
+| V2_N: 13:30 UTC, direction = +DI vs −DI, no bias | 1,163 | −0.042 | −0.074 | +0.027 | −40.3 | −46 / −26 / −15 R | 60 % |
+| V2_O: 08:00 UTC, direction = daily SMA200 bias | 1,130 | −0.124 | +0.081 | −0.129 | −83.8 | −87 / −16 / −71 R | 60 % |
+
+The pullback trades (trig A) inside these runs are unchanged from v2.2. The forced trades win about 40 % of the time with a profit factor of 0.77–1.13: a direction call with no edge, minus spread and commission, which on a 7 USD stop cost about 0.05 R per trade. The drawdowns of 40–87 R would close a 6 % trailing account at any risk size. Six of nine period results are negative; the one positive period (V2_O validation) is followed by the worst final test.
+
+**Verdict: rejected.** A trade every day cannot be made from this data; the market does not offer a daily edge at this timeframe, only on the days the pullback setup appears. Not added to the Pine script. If Aayan wants it for paper trading only, it goes in as a separate mode labelled with this result.

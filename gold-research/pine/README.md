@@ -51,7 +51,7 @@
 | More trades: reward/risk 1.0 | min RR 1.0 | 110 trades, +0.205 R, PF 1.45 |
 | Most trades: no bias + RR 1.0 | both | not run in the research; expect the most trades and the least edge per trade |
 
-More trades always meant less edge per trade in the research. None of the modes produces a trade every day; the loosest is roughly one every two sessions.
+More trades always meant less edge per trade in the research. None of the modes produces a trade every day; the loosest is roughly one every two sessions. A forced daily trade was tested on 2026-11-12 (VALIDATION_REPORT_v2.md §8): the forced trades lost on average and the drawdown would close the account, so there is no daily mode. The "more trades" modes are also incompatible with the 6 % trailing floor (ACCOUNT_RULES.md, risk budget decision); they stay in the script for backtesting only.
 
 ## News blackout list (added 2026-11-12)
 

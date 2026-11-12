@@ -2190,6 +2190,480 @@
     "n": 29,
     "ambiguous_m1_bars": 0
   },
+  "V2_M_daily_bias": {
+    "periods": {
+      "development": {
+        "n": 536,
+        "total_R": -25.225978730865613,
+        "mean_R": -0.04706339315460002,
+        "median_R": -0.5077895290582806,
+        "win_rate": 0.39552238805970147,
+        "avg_win_R": 1.241096829160126,
+        "avg_loss_R": -0.8899336620765811,
+        "profit_factor": 0.9125126260937172,
+        "max_drawdown_R": -41.106596586183706,
+        "longest_dd_trades": 457,
+        "longest_dd_days": 801.0680555555556,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.09910234343969283,
+        "median_hold_min": 69.0,
+        "mean_hold_min": 139.6492537313433,
+        "top5_R": 25.47161731171147,
+        "mean_R_ex_top5": -0.09547569876191553,
+        "boot_ci90": [
+          -0.13187200620882902,
+          0.042837993220849975
+        ],
+        "exits": {
+          "stop": 320,
+          "trail_stop": 94,
+          "time_exit": 73,
+          "breakeven_stop": 47,
+          "stop_same_minute": 2
+        },
+        "mean_R_unweighted": -0.055658147337370484
+      },
+      "validation": {
+        "n": 279,
+        "total_R": 9.364128928155484,
+        "mean_R": 0.03356318612242109,
+        "median_R": -1.0053816946328131,
+        "win_rate": 0.41935483870967744,
+        "avg_win_R": 1.46988179583531,
+        "avg_loss_R": -1.0037780320035545,
+        "profit_factor": 1.0575857043546149,
+        "max_drawdown_R": -21.24259043412792,
+        "longest_dd_trades": 105,
+        "longest_dd_days": 168.29513888888889,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.18383172032391862,
+        "median_hold_min": 75.0,
+        "mean_hold_min": 166.79928315412187,
+        "top5_R": 29.639358727216987,
+        "mean_R_ex_top5": -0.07399718904766968,
+        "boot_ci90": [
+          -0.10884337392243547,
+          0.18324562115348483
+        ],
+        "exits": {
+          "stop": 161,
+          "time_exit": 53,
+          "trail_stop": 37,
+          "breakeven_stop": 28
+        },
+        "mean_R_unweighted": 0.03356318612242109
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 21.715601106095455,
+        "mean_R": 0.07540139272949811,
+        "median_R": -0.5018811312756672,
+        "win_rate": 0.4375,
+        "avg_win_R": 1.2521421098803178,
+        "avg_loss_R": -0.839841387276695,
+        "profit_factor": 1.1596098054213102,
+        "max_drawdown_R": -18.201533881186773,
+        "longest_dd_trades": 256,
+        "longest_dd_days": 378.0527777777778,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.1834832286894055,
+        "median_hold_min": 75.5,
+        "mean_hold_min": 160.90277777777777,
+        "top5_R": 20.306515264027126,
+        "mean_R_ex_top5": 0.004979101915435816,
+        "boot_ci90": [
+          -0.04366087684447515,
+          0.19593441351000068
+        ],
+        "exits": {
+          "stop": 160,
+          "trail_stop": 51,
+          "time_exit": 46,
+          "breakeven_stop": 31
+        },
+        "mean_R_unweighted": 0.10425084247817207
+      },
+      "validation+final_test": {
+        "n": 567,
+        "total_R": 31.079730034250943,
+        "mean_R": 0.05481433868474593,
+        "median_R": -0.5025123775649378,
+        "win_rate": 0.42857142857142855,
+        "avg_win_R": 1.35697973645124,
+        "avg_loss_R": -0.9218097096401247,
+        "profit_factor": 1.1040617078504789,
+        "max_drawdown_R": -21.24259043412792,
+        "longest_dd_trades": 256,
+        "longest_dd_days": 378.0527777777778,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.18365767878077374,
+        "median_hold_min": 75.0,
+        "mean_hold_min": 163.8042328042328,
+        "top5_R": 30.544533965545007,
+        "mean_R_ex_top5": 0.000952306172074632,
+        "boot_ci90": [
+          -0.03723520658205449,
+          0.14859195897800156
+        ],
+        "exits": {
+          "stop": 321,
+          "time_exit": 99,
+          "trail_stop": 88,
+          "breakeven_stop": 59
+        },
+        "mean_R_unweighted": 0.06946802744597715
+      },
+      "all": {
+        "n": 1103,
+        "total_R": 5.853751303385344,
+        "mean_R": 0.005307118135435489,
+        "median_R": -0.5071687345983885,
+        "win_rate": 0.4125113327289211,
+        "avg_win_R": 1.302985942284831,
+        "avg_loss_R": -0.9058716858583531,
+        "profit_factor": 1.0099722366503288,
+        "max_drawdown_R": -42.254767522816714,
+        "longest_dd_trades": 766,
+        "longest_dd_days": 1276.1180555555557,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.1330119349046397,
+        "median_hold_min": 73.0,
+        "mean_hold_min": 152.06618313689935,
+        "top5_R": 32.33012294898525,
+        "mean_R_ex_top5": -0.02411327107978143,
+        "boot_ci90": [
+          -0.0571422274688706,
+          0.06871569315372943
+        ],
+        "exits": {
+          "stop": 641,
+          "trail_stop": 182,
+          "time_exit": 172,
+          "breakeven_stop": 106,
+          "stop_same_minute": 2
+        },
+        "mean_R_unweighted": 0.008663286118801886
+      }
+    },
+    "n": 1103,
+    "ambiguous_m1_bars": 0
+  },
+  "V2_N_daily_di_nobias": {
+    "periods": {
+      "development": {
+        "n": 772,
+        "total_R": -37.148915350924625,
+        "mean_R": -0.04812035667218216,
+        "median_R": -1.0100539122985637,
+        "win_rate": 0.39766839378238344,
+        "avg_win_R": 1.4546802490940052,
+        "avg_loss_R": -1.0402919394038372,
+        "profit_factor": 0.92320411462055,
+        "max_drawdown_R": -45.735757014754576,
+        "longest_dd_trades": 770,
+        "longest_dd_days": 1266.0680555555555,
+        "longest_losing_streak": 13,
+        "exposure_share": 0.1326704620680524,
+        "median_hold_min": 60.0,
+        "mean_hold_min": 129.80051813471502,
+        "top5_R": 27.67458885475724,
+        "mean_R_ex_top5": -0.08451565085486543,
+        "boot_ci90": [
+          -0.12963193259343983,
+          0.038017193039892934
+        ],
+        "exits": {
+          "stop": 456,
+          "trail_stop": 134,
+          "time_exit": 92,
+          "breakeven_stop": 89,
+          "stop_same_minute": 1
+        },
+        "mean_R_unweighted": -0.04812035667218216
+      },
+      "validation": {
+        "n": 285,
+        "total_R": 1.9719572501408162,
+        "mean_R": 0.006919148246108127,
+        "median_R": -1.0059873269085429,
+        "win_rate": 0.3894736842105263,
+        "avg_win_R": 1.596844387589055,
+        "avg_loss_R": -1.0073435044381858,
+        "profit_factor": 1.0112504697698013,
+        "max_drawdown_R": -25.651451927291276,
+        "longest_dd_trades": 146,
+        "longest_dd_days": 205.0090277777778,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.15214299822239777,
+        "median_hold_min": 66.0,
+        "mean_hold_min": 135.140350877193,
+        "top5_R": 27.921574507129833,
+        "mean_R_ex_top5": -0.09267720448924648,
+        "boot_ci90": [
+          -0.13399155912576136,
+          0.1565338171872977
+        ],
+        "exits": {
+          "stop": 173,
+          "trail_stop": 54,
+          "time_exit": 35,
+          "breakeven_stop": 23
+        },
+        "mean_R_unweighted": 0.006919148246108127
+      },
+      "final_test": {
+        "n": 301,
+        "total_R": 6.73463913601884,
+        "mean_R": 0.022374216398733687,
+        "median_R": -1.0027569648711363,
+        "win_rate": 0.40863787375415284,
+        "avg_win_R": 1.4966397814062977,
+        "avg_loss_R": -0.9963598538031225,
+        "profit_factor": 1.0379732796153232,
+        "max_drawdown_R": -15.234355207773643,
+        "longest_dd_trades": 168,
+        "longest_dd_days": 242.53402777777777,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.16005882685672265,
+        "median_hold_min": 68.0,
+        "mean_hold_min": 134.29900332225913,
+        "top5_R": 24.46636341269616,
+        "mean_R_ex_top5": -0.05990447390769357,
+        "boot_ci90": [
+          -0.11018030797753278,
+          0.1516241004839251
+        ],
+        "exits": {
+          "stop": 174,
+          "trail_stop": 61,
+          "time_exit": 34,
+          "breakeven_stop": 32
+        },
+        "mean_R_unweighted": 0.022374216398733687
+      },
+      "validation+final_test": {
+        "n": 586,
+        "total_R": 8.706596386159662,
+        "mean_R": 0.014857673013924337,
+        "median_R": -1.0034860487323047,
+        "win_rate": 0.3993174061433447,
+        "avg_win_R": 1.5441727356211954,
+        "avg_loss_R": -1.001789272014773,
+        "profit_factor": 1.0246904708557834,
+        "max_drawdown_R": -25.651451927291276,
+        "longest_dd_trades": 447,
+        "longest_dd_days": 633.0527777777778,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.1560962725462224,
+        "median_hold_min": 67.5,
+        "mean_hold_min": 134.70819112627987,
+        "top5_R": 31.500701579413708,
+        "mean_R_ex_top5": -0.03923253905895714,
+        "boot_ci90": [
+          -0.08007840665594014,
+          0.11501797470557723
+        ],
+        "exits": {
+          "stop": 347,
+          "trail_stop": 115,
+          "time_exit": 69,
+          "breakeven_stop": 55
+        },
+        "mean_R_unweighted": 0.014857673013924337
+      },
+      "all": {
+        "n": 1358,
+        "total_R": -28.442318964764972,
+        "mean_R": -0.020944270224421923,
+        "median_R": -1.0051166842744321,
+        "win_rate": 0.39837997054491897,
+        "avg_win_R": 1.4933886443756366,
+        "avg_loss_R": -1.0237032748739099,
+        "profit_factor": 0.9659929583480126,
+        "max_drawdown_R": -59.670836511241376,
+        "longest_dd_trades": 1356,
+        "longest_dd_days": 2121.052777777778,
+        "longest_losing_streak": 13,
+        "exposure_share": 0.14206501605859262,
+        "median_hold_min": 63.0,
+        "mean_hold_min": 131.91826215022093,
+        "top5_R": 33.5634436040402,
+        "mean_R_ex_top5": -0.045828353709390444,
+        "boot_ci90": [
+          -0.082506122073046,
+          0.042404224465346904
+        ],
+        "exits": {
+          "stop": 803,
+          "trail_stop": 249,
+          "time_exit": 161,
+          "breakeven_stop": 144,
+          "stop_same_minute": 1
+        },
+        "mean_R_unweighted": -0.020944270224421923
+      }
+    },
+    "n": 1358,
+    "ambiguous_m1_bars": 0
+  },
+  "V2_O_daily_bias_0800": {
+    "periods": {
+      "development": {
+        "n": 613,
+        "total_R": -74.74403462758642,
+        "mean_R": -0.12193154099116871,
+        "median_R": -0.50973097703946,
+        "win_rate": 0.37520391517128876,
+        "avg_win_R": 1.108244212961716,
+        "avg_loss_R": -0.8606793827905511,
+        "profit_factor": 0.7732557078617357,
+        "max_drawdown_R": -86.65421498301194,
+        "longest_dd_trades": 563,
+        "longest_dd_days": 849.0784722222222,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.12361842976300808,
+        "median_hold_min": 99.0,
+        "mean_hold_min": 152.31484502446983,
+        "top5_R": 21.803896948248564,
+        "mean_R_ex_top5": -0.15879594009183384,
+        "boot_ci90": [
+          -0.19362210809361544,
+          -0.04801030431977897
+        ],
+        "exits": {
+          "stop": 381,
+          "trail_stop": 143,
+          "breakeven_stop": 78,
+          "time_exit": 10,
+          "stop_same_minute": 1
+        },
+        "mean_R_unweighted": -0.16690778822187124
+      },
+      "validation": {
+        "n": 295,
+        "total_R": 36.881468185879484,
+        "mean_R": 0.12502192605382875,
+        "median_R": -1.0044869120878934,
+        "win_rate": 0.4711864406779661,
+        "avg_win_R": 1.3945923416383588,
+        "avg_loss_R": -1.0061978673195666,
+        "profit_factor": 1.2349633959054251,
+        "max_drawdown_R": -15.839954110543374,
+        "longest_dd_trades": 59,
+        "longest_dd_days": 89.24305555555556,
+        "longest_losing_streak": 9,
+        "exposure_share": 0.24217262492593322,
+        "median_hold_min": 174.0,
+        "mean_hold_min": 207.81694915254238,
+        "top5_R": 28.96029025944155,
+        "mean_R_ex_top5": 0.02731440664288943,
+        "boot_ci90": [
+          -0.009031999119504827,
+          0.26359916403536887
+        ],
+        "exits": {
+          "stop": 155,
+          "trail_stop": 91,
+          "breakeven_stop": 35,
+          "time_exit": 14
+        },
+        "mean_R_unweighted": 0.12502192605382875
+      },
+      "final_test": {
+        "n": 286,
+        "total_R": -30.45559320872505,
+        "mean_R": -0.10648808814239527,
+        "median_R": -0.5023588135711972,
+        "win_rate": 0.3741258741258741,
+        "avg_win_R": 1.134328095309563,
+        "avg_loss_R": -0.8482050246192641,
+        "profit_factor": 0.7994081927349281,
+        "max_drawdown_R": -70.97917682097071,
+        "longest_dd_trades": 251,
+        "longest_dd_days": 373.0229166666667,
+        "longest_losing_streak": 14,
+        "exposure_share": 0.24276882176593698,
+        "median_hold_min": 186.0,
+        "mean_hold_min": 214.38111888111888,
+        "top5_R": 16.2907504729569,
+        "mean_R_ex_top5": -0.16635709495260476,
+        "boot_ci90": [
+          -0.20898082283550445,
+          -0.0030783655975812063
+        ],
+        "exits": {
+          "stop": 179,
+          "trail_stop": 75,
+          "breakeven_stop": 20,
+          "time_exit": 12
+        },
+        "mean_R_unweighted": -0.0696198802036371
+      },
+      "validation+final_test": {
+        "n": 581,
+        "total_R": 6.425874977154454,
+        "mean_R": 0.01106002577823486,
+        "median_R": -0.5026092634724151,
+        "win_rate": 0.423407917383821,
+        "avg_win_R": 1.2813879743327443,
+        "avg_loss_R": -0.9217778110707483,
+        "profit_factor": 1.020809479377067,
+        "max_drawdown_R": -70.97917682097074,
+        "longest_dd_trades": 251,
+        "longest_dd_days": 373.0229166666667,
+        "longest_losing_streak": 14,
+        "exposure_share": 0.2424703738753372,
+        "median_hold_min": 177.0,
+        "mean_hold_min": 211.04819277108433,
+        "top5_R": 28.96029025944155,
+        "mean_R_ex_top5": -0.03912224875397068,
+        "boot_ci90": [
+          -0.07390773197726379,
+          0.10112581706516377
+        ],
+        "exits": {
+          "stop": 334,
+          "trail_stop": 166,
+          "breakeven_stop": 55,
+          "time_exit": 26
+        },
+        "mean_R_unweighted": 0.029208575641375713
+      },
+      "all": {
+        "n": 1194,
+        "total_R": -68.318159650432,
+        "mean_R": -0.057217889154465656,
+        "median_R": -0.5092080978273488,
+        "win_rate": 0.39865996649916247,
+        "avg_win_R": 1.1977260728299364,
+        "avg_loss_R": -0.8891863096343757,
+        "profit_factor": 0.8929913347172593,
+        "max_drawdown_R": -90.71362955810412,
+        "longest_dd_trades": 1144,
+        "longest_dd_days": 1703.0229166666666,
+        "longest_losing_streak": 14,
+        "exposure_share": 0.17128213842676773,
+        "median_hold_min": 129.0,
+        "mean_hold_min": 180.89447236180905,
+        "top5_R": 31.063132376082805,
+        "mean_R_ex_top5": -0.08358392937469712,
+        "boot_ci90": [
+          -0.11423499670817702,
+          8.46507147781526e-05
+        ],
+        "exits": {
+          "stop": 715,
+          "trail_stop": 309,
+          "breakeven_stop": 133,
+          "time_exit": 36,
+          "stop_same_minute": 1
+        },
+        "mean_R_unweighted": -0.07147763126663968
+      }
+    },
+    "n": 1194,
+    "ambiguous_m1_bars": 0
+  },
   "verdict_V2_0": {
     "verdict": "INCONCLUSIVE",
     "conditions": {
