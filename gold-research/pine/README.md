@@ -5,7 +5,7 @@
 ## Setup in TradingView
 
 1. Chart: XAUUSD (FOREX.com), **15-minute**. Pine Editor → paste the file → "Add to chart".
-2. Strategy Tester → Settings → Properties: initial capital 50000, base currency USD, commission **0.15 per contract** (this stands in for the ~0.30 USD/oz spread the strategy cannot see), slippage **5 ticks** (0.05 USD), order size "from script". Turn on "Use bar magnifier" if your plan has it (fills then use 1-minute data inside each 15-minute bar; without it, same-bar stop/target order is TradingView's guess).
+2. The script sets margin to 5 % (1:20). Without it TradingView requires 100 % cash per position and refuses every order, which shows up as "no trades". Strategy Tester → Settings → Properties: initial capital 50000, base currency USD, commission **0.15 per contract** (this stands in for the ~0.30 USD/oz spread the strategy cannot see), slippage **5 ticks** (0.05 USD), order size "from script". Turn on "Use bar magnifier" if your plan has it (fills then use 1-minute data inside each 15-minute bar; without it, same-bar stop/target order is TradingView's guess).
 3. Quantity is in ounces. 100 oz = 1.00 lot. `Quantity step` input: 1 for whole ounces.
 4. The daily bias needs 200 daily bars of history. The first trades appear about ten months after the start of your data.
 

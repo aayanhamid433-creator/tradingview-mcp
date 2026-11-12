@@ -17,6 +17,7 @@
 strategy("Gold v2.1 Pullback (Holy Grail + daily bias)", shorttitle="Gold v2.1", overlay=true, pyramiding=0,
      initial_capital=50000, currency=currency.USD, default_qty_type=strategy.fixed, default_qty_value=1,
      commission_type=strategy.commission.cash_per_contract, commission_value=0.15, slippage=5,
+     margin_long=5, margin_short=5,   // 1:20 leverage; without this TradingView demands 100 % cash and refuses every order
      calc_on_every_tick=false, process_orders_on_close=false, max_bars_back=600)
 
 // ───────────────────────────── Inputs ─────────────────────────────
@@ -158,6 +159,7 @@ if strategy.closedtrades > closedPrev
 
 // position just closed → clear
 if not inPos and inPos[1]
+    pendSide := 0
     initStop := na
     runStop  := na
     t1Level  := na
@@ -192,6 +194,10 @@ if inPos
         strategy.exit("Run", from_entry=isLong ? "L" : "S", stop=runStop, comment_loss="trail/BE")
     else
         strategy.exit("X", from_entry=isLong ? "L" : "S", limit=t1Level, stop=initStop, comment_profit="target", comment_loss="stop")
+
+// pending state is consumed by the fill
+if inPos and pendSide != 0
+    pendSide := 0
 
 // ───────────────────────────── Pending-order management (bar just closed) ─────────────────────────────
 if not inPos and pendSide != 0
@@ -293,11 +299,35 @@ if canSignal and armed and touch and not na(atr) and not na(adx)
 if inPos and not inPos[1]
     tradesDay += 1
 
-// ───────────────────────────── Plots ─────────────────────────────
+// ───────────────────────────── Simple visuals ─────────────────────────────
 plot(ema, "EMA20", color=color.new(color.aqua, 0), linewidth=2)
-bgcolor(useBias ? (biasLong ? color.new(color.green, 92) : biasShort ? color.new(color.red, 92) : na) : na, title="Daily bias")
-plot(showLvls and (pendSide != 0 or inPos) ? (inPos ? strategy.position_avg_price : pendLevel) : na, "Entry", color=color.new(color.yellow, 0), style=plot.style_linebr)
-plot(showLvls and (pendSide != 0 or inPos) ? (inPos ? runStop : (pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf)) : na, "Stop", color=color.new(color.red, 0), style=plot.style_linebr)
-plot(showLvls and (pendSide != 0 or inPos) ? (inPos ? t1Level : pendTarget) : na, "Target", color=color.new(color.lime, 0), style=plot.style_linebr)
+bgcolor(useBias ? (biasLong ? color.new(color.green, 94) : biasShort ? color.new(color.red, 94) : na) : na, title="Daily bias")
+bgcolor(not inWindow ? color.new(color.gray, 90) : na, title="Window closed")
+isLongNow = inPos ? strategy.position_size > 0 : pendSide == 1
+entryNow  = inPos ? strategy.position_avg_price : pendLevel
+stopNow   = inPos ? runStop : (pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf)
+tgtNow    = inPos ? t1Level : pendTarget
+lotsNow   = na(entryQty) ? na : entryQty / 100
+whatToDo  = inPos ? (t1Done ? "HOLD THE REST. STOP " + str.tostring(stopNow, "#.##") + ". OUT AT 20:50 UTC" : "HOLD. STOP " + str.tostring(stopNow, "#.##") + " / TAKE HALF AT " + str.tostring(tgtNow, "#.##")) :
+            pendSide != 0 ? (isLongNow ? "PLACE BUY STOP " : "PLACE SELL STOP ") + str.tostring(entryNow, "#.##") :
+            dayHalt or wkHalt ? "STOP FOR TODAY" : not inWindow ? "WAIT (window closed)" : "WAIT (no setup)"
+var box bxR = na
+var box bxG = na
+var label lbl = na
+box.delete(bxR), box.delete(bxG), label.delete(lbl)
+if barstate.islast
+    if pendSide != 0 or inPos
+        bxR := box.new(bar_index - 12, math.max(entryNow, stopNow), bar_index + 12, math.min(entryNow, stopNow), bgcolor=color.new(color.red, 75), border_color=color.red)
+        bxG := box.new(bar_index - 12, math.max(entryNow, tgtNow), bar_index + 12, math.min(entryNow, tgtNow), bgcolor=color.new(color.green, 75), border_color=color.green)
+    lbl := label.new(bar_index + 2, high + 2 * atr, whatToDo, style=label.style_label_lower_left, color=inPos ? color.green : pendSide != 0 ? color.orange : color.gray, textcolor=color.white, size=size.large)
+var table tb = table.new(position.top_right, 2, 5, border_width=1)
+if barstate.islast
+    f_cell(r, k, v, c) =>
+        table.cell(tb, 0, r, k, text_color=color.white, bgcolor=color.new(color.black, 10), text_size=size.normal)
+        table.cell(tb, 1, r, v, text_color=color.white, bgcolor=color.new(c, 25), text_size=size.normal)
+    f_cell(0, "WHAT TO DO", whatToDo, inPos ? color.green : pendSide != 0 ? color.orange : color.gray)
+    f_cell(1, "DIRECTION TODAY", useBias ? (biasLong ? "ONLY BUY" : biasShort ? "ONLY SELL" : "none") : "both", biasLong ? color.green : color.red)
+    f_cell(2, "ENTER AT", pendSide != 0 or inPos ? str.tostring(entryNow, "#.##") : "-", color.gray)
+    f_cell(3, "STOP LOSS  /  TAKE PROFIT", pendSide != 0 or inPos ? str.tostring(stopNow, "#.##") + "  /  " + str.tostring(tgtNow, "#.##") : "-", color.gray)
+    f_cell(4, "LOT SIZE", pendSide != 0 or inPos ? str.tostring(lotsNow, "#.##") + " lot" : "-", color.gray)
 plotshape(armed and touch and inWindow and not inPos, "Touch bar in trend", style=shape.circle, location=location.belowbar, color=color.new(color.orange, 0), size=size.tiny)
-plotchar(dayHalt or wkHalt, "Daily/weekly stop active", char="■", location=location.top, color=color.new(color.red, 0), size=size.tiny)
