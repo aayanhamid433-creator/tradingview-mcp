@@ -1,0 +1,420 @@
+//@version=6
+// GOLD v2.1 — one script: backtest engine (Strategy Tester), simple visuals, and alert instructions for live/demo use.
+// Trend-pullback strategy for XAUUSD on the 15-minute chart.
+// Source rules: gold-research/GOLD_PLAYBOOK_v2_CANDIDATE.md (v2.1 = no breakout trigger, no momentum vote, window 07:00-15:45 UTC)
+// and gold-research/ACCOUNT_RULES.md (0.5 % risk, hard stop always, daily/weekly stops).
+// Status: UNVALIDATED. Backtest INCONCLUSIVE on HistData. This script is for Aayan's own TradingView backtests.
+//
+// HOW TO USE
+//   1. Open XAUUSD (FOREX.com) on the 15-minute chart. Add this as a strategy.
+//   2. Strategy Tester > Settings: initial capital 50000, commission 0.15 per contract (≈ 0.30 USD/oz round trip, the
+//      spread the script cannot see), slippage 5 ticks (0.05 USD). Turn on "Use bar magnifier" if your plan has it.
+//   3. Order size is computed by the script (risk % of equity ÷ stop distance), in ounces. 100 oz = 1.00 lot.
+//   4. Read the Properties tab, then List of Trades. Compare periods separately: 2021-01 → 2024-06, 2024-07 → 2025-08,
+//      2025-09 → today. Never tune on all three at once.
+//
+// WHAT IT CANNOT DO: read the news calendar (set the blackout inputs by hand on news days), see 1-minute lows inside a
+// 15-minute bar before the fill (stops use 15-minute lows), or know your broker's live spread.
+strategy("Gold v2.1", shorttitle="Gold v2.1", overlay=true, pyramiding=0, max_labels_count=500,
+     initial_capital=50000, currency=currency.USD, default_qty_type=strategy.fixed, default_qty_value=1,
+     commission_type=strategy.commission.cash_per_contract, commission_value=0.15, slippage=5,
+     margin_long=5, margin_short=5,   // 1:20 leverage; without this TradingView demands 100 % cash and refuses every order
+     calc_on_every_tick=false, process_orders_on_close=false, max_bars_back=600)
+
+// ───────────────────────────── Inputs ─────────────────────────────
+mode = input.string("Strict (v2.1)", "MODE", options=["Strict (v2.1)", "More trades: no daily bias", "More trades: reward/risk 1.0", "Most trades: no bias + RR 1.0"], group="Mode (backtested trade-offs: more trades = less edge per trade)")
+gTrend   = "Trend and setup (L1/L3)"
+adxLen    = input.int(14, "ADX / DI length", minval=5, group=gTrend)
+adxThr    = input.float(30.0, "ADX armed threshold", step=1, group=gTrend)
+adxLook   = input.int(10, "Bars back for 'ADX rising above threshold'", minval=1, group=gTrend)
+adxCancel = input.float(25.0, "Cancel pending if ADX falls below", step=1, group=gTrend)
+emaLen    = input.int(20, "EMA length", minval=2, group=gTrend)
+atrLen    = input.int(14, "ATR length", minval=2, group=gTrend)
+useBias   = input.bool(true, "Daily bias filter (close vs SMA200 on D1, previous day)", group=gTrend)
+smaLen    = input.int(200, "Daily SMA length for bias", minval=20, group=gTrend)
+
+gEntry   = "Entry, stop, target (L4/L5)"
+entryOff  = input.float(0.10, "Entry offset beyond touch bar (USD)", step=0.05, group=gEntry)
+bufMin    = input.float(0.30, "Stop buffer minimum (USD)", step=0.05, group=gEntry)
+bufAtr    = input.float(0.10, "Stop buffer × ATR", step=0.05, group=gEntry)
+deepAtr   = input.float(0.5, "Cancel if close beyond EMA by × ATR (deep break)", step=0.1, group=gEntry)
+tgtLook   = input.int(20, "Target = extreme of last N bars at first touch", minval=5, group=gEntry)
+capAtr    = input.float(1.0, "Cap target at prior-day H/L if beyond it by × ATR (0 = off)", step=0.5, group=gEntry)
+minRR     = input.float(1.5, "Minimum reward/risk at placement", step=0.1, group=gEntry)
+rearm     = input.bool(true, "Re-arm on later touch bars", group=gEntry)
+expiryN   = input.int(4, "Pending expires after N bars", minval=1, group=gEntry)
+stopSan   = input.float(0.6, "Skip if stop distance > × daily ATR (0 = off)", step=0.1, group=gEntry)
+usePartial= input.bool(true, "50 % off at T1, stop to breakeven, trail remainder", group=gEntry)
+partPct   = input.float(50, "Partial %", minval=10, maxval=90, step=10, group=gEntry)
+bePlus    = input.float(0.10, "Breakeven offset after T1 (USD)", step=0.05, group=gEntry)
+trailMult = input.float(3.0, "Chandelier trail × ATR on remainder", step=0.5, group=gEntry)
+
+gTime    = "Session gates (L0), UTC"
+sigStartH = input.int(7,  "Signal window start hour", minval=0, maxval=23, group=gTime)
+sigStartM = input.int(0,  "Signal window start minute", minval=0, maxval=59, group=gTime)
+sigEndH   = input.int(15, "Signal window end hour", minval=0, maxval=23, group=gTime)
+sigEndM   = input.int(45, "Signal window end minute", minval=0, maxval=59, group=gTime)
+cutH      = input.int(16, "Cancel pending at hour", minval=0, maxval=23, group=gTime)
+cutM      = input.int(0,  "Cancel pending at minute", minval=0, maxval=59, group=gTime)
+flatH     = input.int(20, "Force flat at hour", minval=0, maxval=23, group=gTime)
+flatM     = input.int(45, "Force flat at minute (bar OPEN time; fills next bar open)", minval=0, maxval=59, group=gTime)
+newsHalf  = input.int(5,  "News blackout half-width (minutes each side)", minval=1, maxval=60, group=gTime)
+newsList  = input.string("2026-11-13 13:30,2026-11-20 13:30,2026-11-25 13:30,2026-12-04 13:30,2026-12-09 19:00,2026-12-10 13:30,2026-12-18 13:30,2026-12-23 13:30,2027-01-08 13:30,2027-01-13 13:30,2027-01-27 19:00",
+     "Red-folder events, UTC, comma separated (YYYY-MM-DD HH:MM). VERIFY on Forex Factory each week.", group=gTime)
+
+gRisk    = "Risk and sizing (L6, ACCOUNT_RULES.md)"
+riskPct   = input.float(0.5, "Risk per trade, % of equity", step=0.1, group=gRisk)
+maxDay    = input.int(3, "Max entries per session day", minval=1, group=gRisk)
+dayStopR  = input.float(-2.0, "Daily stop (closed R)", step=0.5, group=gRisk)
+wkStopR   = input.float(-4.0, "Weekly stop (closed R)", step=0.5, group=gRisk)
+consecN   = input.int(3, "Daily stop after N consecutive losses", minval=1, group=gRisk)
+qtyStep   = input.float(1.0, "Quantity step (oz). 1 = whole ounces; 0.01-lot brokers = 1 oz", step=1, group=gRisk)
+
+gPlot    = "Display"
+showLvls  = input.bool(true, "Show entry / stop / target", group=gPlot)
+
+// effective settings from MODE
+useBiasE = mode == "More trades: no daily bias" or mode == "Most trades: no bias + RR 1.0" ? false : useBias
+minRRE   = mode == "More trades: reward/risk 1.0" or mode == "Most trades: no bias + RR 1.0" ? 1.0 : minRR
+
+// ───────────────────────────── Indicators ─────────────────────────────
+[diPlus, diMinus, adx] = ta.dmi(adxLen, adxLen)
+ema  = ta.ema(close, emaLen)
+atr  = ta.atr(atrLen)
+risingAbove = adx > adxThr and adx > adx[1]
+armed    = adx > adxThr and ta.barssince(risingAbove) <= adxLook
+longDir  = diPlus > diMinus
+touch    = low <= ema and high >= ema
+
+// Previous completed daily bar (non-repainting: value of the bar that closed before the current intraday bar)
+dClose = request.security(syminfo.tickerid, "D", close[1],  lookahead=barmerge.lookahead_on)
+dSma   = request.security(syminfo.tickerid, "D", ta.sma(close, smaLen)[1], lookahead=barmerge.lookahead_on)
+dHigh  = request.security(syminfo.tickerid, "D", high[1],   lookahead=barmerge.lookahead_on)
+dLow   = request.security(syminfo.tickerid, "D", low[1],    lookahead=barmerge.lookahead_on)
+dAtr   = request.security(syminfo.tickerid, "D", ta.atr(14)[1], lookahead=barmerge.lookahead_on)
+biasLong  = not useBiasE or (not na(dSma) and dClose > dSma)
+biasShort = not useBiasE or (not na(dSma) and dClose < dSma)
+
+// ───────────────────────────── Time gates ─────────────────────────────
+mod      = hour(time, "UTC") * 60 + minute(time, "UTC")          // bar OPEN time, minutes of day
+sigLo    = sigStartH * 60 + sigStartM
+sigHi    = sigEndH * 60 + sigEndM
+cutMin   = cutH * 60 + cutM
+flatMin  = flatH * 60 + flatM
+inWindow = mod >= sigLo and mod <= sigHi
+var int[] newsTs = array.new_int()
+if barstate.isfirst
+    parts = str.split(newsList, ",")
+    for i = 0 to array.size(parts) - 1
+        e = str.trim(array.get(parts, i))
+        if str.length(e) >= 16
+            yy = int(str.tonumber(str.substring(e, 0, 4)))
+            mm = int(str.tonumber(str.substring(e, 5, 7)))
+            dd = int(str.tonumber(str.substring(e, 8, 10)))
+            hh = int(str.tonumber(str.substring(e, 11, 13)))
+            mi = int(str.tonumber(str.substring(e, 14, 16)))
+            array.push(newsTs, timestamp("UTC", yy, mm, dd, hh, mi))
+f_inNews() =>
+    hit = false
+    barEnd = time + 15 * 60 * 1000
+    if array.size(newsTs) > 0
+        for i = 0 to array.size(newsTs) - 1
+            t0 = array.get(newsTs, i) - newsHalf * 60 * 1000
+            t1 = array.get(newsTs, i) + newsHalf * 60 * 1000
+            if barEnd > t0 and time < t1
+                hit := true
+    hit
+inNews   = f_inNews()
+sessDay  = math.floor((time + 3600000) / 86400000)                // session day: 23:00 UTC → 23:00 UTC
+weekKey  = year(time, "UTC") * 100 + weekofyear(time, "UTC")
+
+// ───────────────────────────── State ─────────────────────────────
+var int   pendSide   = 0       // 0 none, 1 long, -1 short
+var float pendLevel  = na
+var float pendTarget = na
+var float pendBuf    = na
+var float seqLow     = na
+var float seqHigh    = na
+var int   firstBar   = na
+var int   lastTouch  = na
+var float initStop   = na
+var float runStop    = na
+var float t1Level    = na
+var float hhSince    = na
+var float llSince    = na
+var float entryQty   = na
+var float riskPerOz  = na
+var bool  t1Done     = false
+var int   dayKey     = -1
+var int   wkKey      = -1
+var int   tradesDay  = 0
+var float dayR       = 0.0
+var float wkR        = 0.0
+var int   consec     = 0
+var bool  dayHalt    = false
+var bool  wkHalt     = false
+var int   closedPrev = 0
+var float posPnl     = 0.0
+
+inPos = strategy.position_size != 0
+string event = ""
+
+// new session day / week
+if sessDay != dayKey
+    dayKey   := sessDay
+    tradesDay := 0
+    dayR     := 0.0
+    consec   := 0
+    dayHalt  := false
+if weekKey != wkKey
+    wkKey  := weekKey
+    wkR    := 0.0
+    wkHalt := false
+
+// ───────────────────────────── Closed-trade accounting (R) ─────────────────────────────
+if strategy.closedtrades > closedPrev
+    for i = closedPrev to strategy.closedtrades - 1
+        p = strategy.closedtrades.profit(i)
+        posPnl += p
+        r = na(riskPerOz) or na(entryQty) or entryQty == 0 ? 0.0 : p / (riskPerOz * entryQty)
+        dayR  += r
+        wkR   += r
+        consec := p <= 0 ? consec + 1 : 0
+    closedPrev := strategy.closedtrades
+    if consec >= consecN or dayR <= dayStopR
+        dayHalt := true
+    if wkR <= wkStopR
+        wkHalt := true
+
+// just filled
+if inPos and not inPos[1]
+    posPnl := 0.0
+    event := (strategy.position_size > 0 ? "BUY" : "SELL") + " FILLED at " + str.tostring(strategy.position_avg_price, "#.##") + ". Stop " + str.tostring(initStop, "#.##") + ", take half at " + str.tostring(t1Level, "#.##")
+
+// position just closed → clear
+if not inPos and inPos[1]
+    event := "EXIT: trade closed (" + strategy.closedtrades.exit_comment(strategy.closedtrades - 1) + ")"
+    pendSide := 0
+    initStop := na
+    runStop  := na
+    t1Level  := na
+    t1Done   := false
+    hhSince  := na
+    llSince  := na
+
+// ───────────────────────────── Forced flat ─────────────────────────────
+if inPos and mod >= flatMin
+    strategy.close_all(comment="time_exit")
+    event := "EXIT at market now: time exit"
+
+// ───────────────────────────── Position management ─────────────────────────────
+if inPos
+    isLong = strategy.position_size > 0
+    hhSince := na(hhSince) ? high : math.max(hhSince, high)
+    llSince := na(llSince) ? low  : math.min(llSince, low)
+    // detect partial fill
+    if usePartial and not t1Done and math.abs(strategy.position_size) < entryQty - 1e-9
+        t1Done := true
+        be = isLong ? strategy.position_avg_price + bePlus : strategy.position_avg_price - bePlus
+        runStop := isLong ? math.max(runStop, be) : math.min(runStop, be)
+        event := "TARGET HIT: half closed at " + str.tostring(t1Level, "#.##") + ". Move stop to " + str.tostring(runStop, "#.##")
+    if t1Done and trailMult > 0
+        tr = isLong ? hhSince - trailMult * atr : llSince + trailMult * atr
+        if isLong and tr > runStop and tr < low
+            runStop := tr
+        if not isLong and tr < runStop and tr > high
+            runStop := tr
+        if runStop != runStop[1] and event == ""
+            event := "MOVE STOP to " + str.tostring(runStop, "#.##")
+    if usePartial and not t1Done
+        strategy.exit("T1",  from_entry=isLong ? "L" : "S", qty_percent=partPct, limit=t1Level, stop=initStop, comment_profit="T1", comment_loss="stop")
+        strategy.exit("Run", from_entry=isLong ? "L" : "S", stop=runStop, comment_loss="stop")
+    else if usePartial and t1Done
+        strategy.exit("Run", from_entry=isLong ? "L" : "S", stop=runStop, comment_loss="trail/BE")
+    else
+        strategy.exit("X", from_entry=isLong ? "L" : "S", limit=t1Level, stop=initStop, comment_profit="target", comment_loss="stop")
+
+// pending state is consumed by the fill
+if inPos and pendSide != 0
+    pendSide := 0
+
+// ───────────────────────────── Pending-order management (bar just closed) ─────────────────────────────
+if not inPos and pendSide != 0
+    // cut-off, news, cancellations, expiry
+    deep = pendSide == 1 ? close < ema - deepAtr * atr : close > ema + deepAtr * atr
+    if mod >= cutMin or inNews or deep or adx < adxCancel or bar_index >= lastTouch + expiryN or dayHalt or wkHalt
+        strategy.cancel_all()
+        event := "CANCEL pending order (" + (mod >= cutMin ? "16:00 cut-off" : inNews ? "news window" : deep ? "deep break of EMA" : adx < adxCancel ? "ADX fell" : dayHalt or wkHalt ? "daily/weekly stop" : "expired") + ")"
+        pendSide := 0
+    else
+        seqLow  := math.min(seqLow, low)
+        seqHigh := math.max(seqHigh, high)
+        // re-arm on a later valid touch bar
+        if rearm and armed and touch and (pendSide == 1) == longDir and inWindow
+            if pendSide == 1
+                pendLevel := high + entryOff
+                stopEst = seqLow - pendBuf
+                rr = (pendTarget - pendLevel) / (pendLevel - stopEst)
+                if rr < minRRE
+                    strategy.cancel_all()
+                    event := "CANCEL: reward/risk fell below " + str.tostring(minRRE)
+                    pendSide := 0
+                else
+                    lastTouch := bar_index
+                    event := "MOVE BUY STOP to " + str.tostring(pendLevel, "#.##")
+            else
+                pendLevel := low - entryOff
+                stopEst = seqHigh + pendBuf
+                rr = (pendLevel - pendTarget) / (stopEst - pendLevel)
+                if rr < minRRE
+                    strategy.cancel_all()
+                    event := "CANCEL: reward/risk fell below " + str.tostring(minRRE)
+                    pendSide := 0
+                else
+                    lastTouch := bar_index
+                    event := "MOVE SELL STOP to " + str.tostring(pendLevel, "#.##")
+        if pendSide != 0
+            // refresh the resting stop order and the stop/target that will apply on fill
+            stopEst2 = pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf
+            riskPerOz := math.abs(pendLevel - stopEst2)
+            qty = math.floor((strategy.equity * riskPct / 100) / riskPerOz / qtyStep) * qtyStep
+            if qty >= qtyStep
+                entryQty := qty
+                initStop := stopEst2
+                runStop  := stopEst2
+                t1Level  := pendTarget
+                if pendSide == 1
+                    strategy.entry("L", strategy.long, qty=qty, stop=pendLevel, comment="buy stop")
+                else
+                    strategy.entry("S", strategy.short, qty=qty, stop=pendLevel, comment="sell stop")
+            else
+                strategy.cancel_all()
+                pendSide := 0
+
+// ───────────────────────────── New setup (Trigger A) ─────────────────────────────
+canSignal = not inPos and pendSide == 0 and inWindow and not inNews and not dayHalt and not wkHalt and tradesDay < maxDay
+if canSignal and armed and touch and not na(atr) and not na(adx)
+    side = longDir ? 1 : -1
+    allowed = side == 1 ? biasLong : biasShort
+    if allowed
+        buf = math.max(bufMin, bufAtr * atr)
+        float level  = na
+        float target = na
+        float stopEst = na
+        if side == 1
+            level  := high + entryOff
+            target := ta.highest(high, tgtLook)
+            if capAtr > 0 and not na(dHigh) and target > dHigh + capAtr * atr and dHigh > level
+                target := dHigh
+            stopEst := low - buf
+        else
+            level  := low - entryOff
+            target := ta.lowest(low, tgtLook)
+            if capAtr > 0 and not na(dLow) and target < dLow - capAtr * atr and dLow < level
+                target := dLow
+            stopEst := high + buf
+        risk = math.abs(level - stopEst)
+        rr   = math.abs(target - level) / risk
+        okSan = stopSan <= 0 or na(dAtr) or risk <= stopSan * dAtr
+        if rr >= minRRE and okSan
+            pendSide   := side
+            pendLevel  := level
+            pendTarget := target
+            pendBuf    := buf
+            seqLow     := low
+            seqHigh    := high
+            firstBar   := bar_index
+            lastTouch  := bar_index
+            riskPerOz  := risk
+            qty = math.floor((strategy.equity * riskPct / 100) / risk / qtyStep) * qtyStep
+            if qty >= qtyStep
+                entryQty := qty
+                initStop := stopEst
+                runStop  := stopEst
+                t1Level  := target
+                if side == 1
+                    strategy.entry("L", strategy.long, qty=qty, stop=level, comment="buy stop")
+                else
+                    strategy.entry("S", strategy.short, qty=qty, stop=level, comment="sell stop")
+                event := "NEW SETUP: place " + (side == 1 ? "BUY STOP " : "SELL STOP ") + str.tostring(level, "#.##") + ", stop " + str.tostring(stopEst, "#.##") + ", target " + str.tostring(target, "#.##") + ", " + str.tostring(qty / 100, "#.##") + " lot"
+            else
+                pendSide := 0
+
+// count entries per day
+if inPos and not inPos[1]
+    tradesDay += 1
+
+// ───────────────────────────── Alerts (Create Alert → this script → "Any alert() function call") ─────────────────────────────
+if event != ""
+    alert(event, alert.freq_once_per_bar_close)
+
+// ───────────────────────────── Visuals ─────────────────────────────
+// Turn OFF TradingView's own markers once: strategy settings (gear) → Style → untick "Trades on chart".
+plot(ema, "EMA20", color=color.new(color.aqua, 40), linewidth=1)
+bgcolor(useBiasE ? (biasLong ? color.new(color.green, 94) : biasShort ? color.new(color.red, 94) : na) : na, title="Daily bias")
+bgcolor(not inWindow ? color.new(color.gray, 90) : na, title="Window closed")
+justIn  = inPos and not inPos[1]
+justOut = not inPos and inPos[1]
+wasLong = strategy.position_size[1] > 0
+plotshape(justIn and strategy.position_size > 0, "BUY", style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.white, text="BUY", size=size.large)
+plotshape(justIn and strategy.position_size < 0, "SELL", style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.white, text="SELL", size=size.large)
+if justOut
+    won = posPnl > 0
+    txt = (won ? "WON +" : "LOST ") + str.tostring(posPnl, "#") + " USD"
+    // result goes on the opposite side of the entry tag so they never overlap
+    if wasLong
+        label.new(bar_index, high, txt, style=label.style_label_down, color=won ? color.new(color.green, 0) : color.new(color.red, 0), textcolor=color.white, size=size.large)
+    else
+        label.new(bar_index, low, txt, style=label.style_label_up, color=won ? color.new(color.green, 0) : color.new(color.red, 0), textcolor=color.white, size=size.large)
+isLongNow = inPos ? strategy.position_size > 0 : pendSide == 1
+entryNow  = inPos ? strategy.position_avg_price : pendLevel
+stopNow   = inPos ? runStop : (pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf)
+tgtNow    = inPos ? t1Level : pendTarget
+lotsNow   = na(entryQty) ? na : entryQty / 100
+rrNow     = (pendSide != 0 or inPos) and not na(entryNow) and not na(stopNow) and entryNow != stopNow ? math.abs(tgtNow - entryNow) / math.abs(entryNow - stopNow) : na
+string whatToDo = "DO NOTHING. No setup yet."
+string orderTxt = "-"
+string statusTxt = "WAIT"
+if inPos
+    statusTxt := t1Done ? "T1 HIT / TRAILING" : "IN TRADE"
+    whatToDo := t1Done ? "IN A TRADE. Half is closed. Keep the stop at " + str.tostring(stopNow, "#.##") + ". Close the rest at 20:50 UTC." : "IN A TRADE. Do nothing. Stop " + str.tostring(stopNow, "#.##") + ", take half at " + str.tostring(tgtNow, "#.##") + "."
+    orderTxt := (isLongNow ? "BOUGHT at " : "SOLD at ") + str.tostring(entryNow, "#.##")
+else if pendSide != 0
+    statusTxt := "PENDING ORDER"
+    whatToDo := "PLACE THIS ORDER IN MT5 NOW"
+    orderTxt := (isLongNow ? "BUY STOP " : "SELL STOP ") + str.tostring(entryNow, "#.##") + "  |  SL " + str.tostring(stopNow, "#.##") + "  |  TP " + str.tostring(tgtNow, "#.##") + "  |  " + str.tostring(lotsNow, "#.##") + " lot"
+else if dayHalt or wkHalt
+    whatToDo := "DO NOTHING. Daily or weekly loss limit reached."
+else if not inWindow
+    whatToDo := "DO NOTHING. Trading window closed (07:00-15:45 UTC)."
+stateCol = inPos ? color.new(color.green, 0) : pendSide != 0 ? color.new(color.orange, 0) : color.new(color.gray, 0)
+var box bxR = na
+var box bxG = na
+var label lbl = na
+box.delete(bxR)
+box.delete(bxG)
+label.delete(lbl)
+if barstate.islast
+    if pendSide != 0 or inPos
+        bxR := box.new(bar_index - 20, math.max(entryNow, stopNow), bar_index + 20, math.min(entryNow, stopNow), bgcolor=color.new(color.red, 65), border_color=color.red, border_width=2, text="RISK  (stop " + str.tostring(stopNow, "#.##") + ")", text_color=color.white, text_size=size.large)
+        bxG := box.new(bar_index - 20, math.max(entryNow, tgtNow), bar_index + 20, math.min(entryNow, tgtNow), bgcolor=color.new(color.green, 65), border_color=color.green, border_width=2, text="REWARD  (target " + str.tostring(tgtNow, "#.##") + ")", text_color=color.white, text_size=size.large)
+    lbl := label.new(bar_index + 3, close, whatToDo, style=label.style_label_left, color=stateCol, textcolor=color.white, size=size.huge)
+// Banner (top centre)
+var table tb = table.new(position.top_center, 1, 2, border_width=2)
+if barstate.islast
+    table.cell(tb, 0, 0, whatToDo, text_color=color.white, bgcolor=stateCol, text_size=size.huge)
+    table.cell(tb, 0, 1, orderTxt, text_color=color.white, bgcolor=color.new(color.black, 0), text_size=size.huge)
+// Live monitor (top right)
+var table mon = table.new(position.top_right, 2, 8, border_width=1)
+f_row(r, k, v, c) =>
+    table.cell(mon, 0, r, k, text_color=color.white, bgcolor=color.new(color.black, 0), text_size=size.large)
+    table.cell(mon, 1, r, v, text_color=color.white, bgcolor=color.new(c, 20), text_size=size.large)
+if barstate.islast
+    f_row(0, "DIRECTION TODAY", useBiasE ? (biasLong ? "ONLY BUY" : biasShort ? "ONLY SELL" : "none") : "BUY or SELL", useBiasE ? (biasLong ? color.green : color.red) : color.gray)
+    f_row(1, "TREND (ADX)", str.tostring(adx, "#.#") + (armed ? "  STRONG" : "  weak") + (longDir ? "  up" : "  down"), armed ? color.green : color.gray)
+    f_row(2, "WINDOW", inWindow ? "OPEN (07:00-15:45 UTC)" : "CLOSED", inWindow ? color.green : color.gray)
+    f_row(3, "STATUS", statusTxt, stateCol)
+    f_row(4, "ENTRY / STOP / TARGET", pendSide != 0 or inPos ? str.tostring(entryNow, "#.##") + " / " + str.tostring(stopNow, "#.##") + " / " + str.tostring(tgtNow, "#.##") : "-", color.gray)
+    f_row(5, "REWARD:RISK / LOTS", pendSide != 0 or inPos ? str.tostring(rrNow, "#.##") + " / " + str.tostring(lotsNow, "#.##") + " lot" : "-", color.gray)
+    f_row(6, "MODE", mode, color.gray)
+    f_row(7, "EMA20 / ATR", str.tostring(ema, "#.##") + " / " + str.tostring(atr, "#.##"), color.gray)

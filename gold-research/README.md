@@ -5,6 +5,7 @@ Research and decision-support artefacts for Aayan's gold trading project. Nothin
 | Read this first | Purpose |
 |---|---|
 | PROJECT_STATE.md | current version, status, blockers, next action |
+| GOLD_MARKET_PRIMER.md | plain-language guide to the gold market, its calendar, its drivers and this system's day |
 | GOLD_PLAYBOOK_v1.md | frozen v1.0 rules with SOURCE / PROPOSED / UNRESOLVED tags (baseline) |
 | GOLD_PLAYBOOK_v2_CANDIDATE.md | v2.0 candidate: layered combination of documented gold methods, UNTESTED, with pre-registered ablations |
 | VALIDATION_REPORT.md | v1.0: what was tested, results, verdict (INCONCLUSIVE), limitations |
@@ -14,6 +15,8 @@ Research and decision-support artefacts for Aayan's gold trading project. Nothin
 | results/DATA_FACTS.md | volatility by session/year, session drift, regime and gap statistics from the research data |
 | CHART_SUBMISSION_TEMPLATE.md | what to send with screenshots |
 | FORWARD_TEST_PROTOCOL.md | demo protocol (not started) |
+| ACCOUNT_RULES.md | prop-firm account constraints translated into numbers and playbook gates |
+| pine/gold_v21.pine | TradingView script implementing v2.1: backtest + simple on-chart guidance + alerts (see pine/README.md) |
 | journal/GOLD_TRADE_JOURNAL.csv | journal schema |
 
 ## Reproduce the backtest

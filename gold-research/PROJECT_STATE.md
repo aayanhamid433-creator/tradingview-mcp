@@ -32,8 +32,8 @@ Last updated: 2026-11-09 (UTC). Current strategy version: **v1.0** (frozen, base
 1. Broker and symbol confirmation (MT5 server timezone, XAUUSD spec screenshot).
 2. Broker M1 export 2021 → today with spread column (see VALIDATION_REPORT.md §9 for the exact request).
 3. Historical high-impact news calendar 2021–2026 (CPI, NFP, FOMC, PCE dates and times).
-4. For sizing: equity, currency, risk budget per trade, existing exposure.
-5. For prop compliance: firm, account type, current official rules, headroom, reset timezone.
+4. For sizing: ~~equity, currency~~ (50,000 USD account, 2026-11-12), risk budget per trade (playbook default 0.5 % = 250 USD unless Aayan sets otherwise), existing exposure (status of the 2026-11-10 short still unreported).
+5. ~~For prop compliance: firm, account type, current official rules, headroom, reset timezone.~~ **Resolved 2026-11-12:** Atlas Funded 1-Step Access Funded 50k; rules and derived sizing in ACCOUNT_RULES.md (daily 3 % of 00:00 UTC equity, trailing 6 % of peak equity, Protector 2 % floating, news ±5 min, consistency 20 %). Still missing: broker M1 export with spread, symbol spec screenshot.
 
 ## Proposed changes (NOT yet evaluated — do not trade)
 | id | proposal | reason | how it will be tested |
