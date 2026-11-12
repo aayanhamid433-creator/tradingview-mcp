@@ -1,6 +1,6 @@
 # pine/ — TradingView strategy for self-backtesting v2.1
 
-`gold_v21_strategy.pine` implements GOLD_PLAYBOOK_v2_CANDIDATE.md in its v2.1 form (trend-pullback trigger only, SMA200 daily bias, no momentum vote, 07:00–15:45 UTC window) with the sizing from ACCOUNT_RULES.md. Pine Script v6, strategy type, overlay.
+`gold_v21.pine` is one script that does three jobs: backtest engine for the Strategy Tester, simple on-chart guidance (instruction label, red risk box, green reward box, five-row table), and `alert()` messages for live or demo use (Create Alert → this script → "Any alert() function call": new setup, move stop order, filled, target hit, move stop, cancel, exit). It implements GOLD_PLAYBOOK_v2_CANDIDATE.md in its v2.1 form (trend-pullback trigger only, SMA200 daily bias, no momentum vote, 07:00–15:45 UTC window) with the sizing from ACCOUNT_RULES.md. Pine Script v6, strategy type, overlay.
 
 ## Setup in TradingView
 
@@ -39,7 +39,3 @@
 - Daily bars are TradingView's (exchange day) rather than the 23:00 UTC session day used in the research.
 - Fill prices are TradingView's (one price series, no bid/ask); commission input stands in for spread.
 - The script has not been compiled here; if the Pine editor reports an error, paste it back and it will be fixed.
-
-## gold_v21_signals.pine — the simple on-chart version
-
-Same rules, no backtest engine. Add as an **indicator** on XAUUSD 15-minute. It draws a dashboard (bias, ADX, window, status, entry / stop / target, reward-to-risk, lots at your risk %, and a "DO NOW" instruction), three lines on the chart (yellow entry, red stop, green target), and fires an `alert()` message on every new instruction: new setup, move stop order, filled, target hit (close 50 %, stop to breakeven), trailing, cancel, exit. To receive them: Create Alert → this indicator → "Any alert() function call". Fills, stops and targets are simulated from 15-minute bars; your broker's actual fills will differ a little.

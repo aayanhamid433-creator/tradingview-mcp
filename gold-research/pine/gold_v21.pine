@@ -1,5 +1,6 @@
 //@version=6
-// GOLD v2.1 CANDIDATE — trend-pullback strategy for XAUUSD on the 15-minute chart.
+// GOLD v2.1 — one script: backtest engine (Strategy Tester), simple visuals, and alert instructions for live/demo use.
+// Trend-pullback strategy for XAUUSD on the 15-minute chart.
 // Source rules: gold-research/GOLD_PLAYBOOK_v2_CANDIDATE.md (v2.1 = no breakout trigger, no momentum vote, window 07:00-15:45 UTC)
 // and gold-research/ACCOUNT_RULES.md (0.5 % risk, hard stop always, daily/weekly stops).
 // Status: UNVALIDATED. Backtest INCONCLUSIVE on HistData. This script is for Aayan's own TradingView backtests.
@@ -14,7 +15,7 @@
 //
 // WHAT IT CANNOT DO: read the news calendar (set the blackout inputs by hand on news days), see 1-minute lows inside a
 // 15-minute bar before the fill (stops use 15-minute lows), or know your broker's live spread.
-strategy("Gold v2.1 Pullback (Holy Grail + daily bias)", shorttitle="Gold v2.1", overlay=true, pyramiding=0,
+strategy("Gold v2.1", shorttitle="Gold v2.1", overlay=true, pyramiding=0,
      initial_capital=50000, currency=currency.USD, default_qty_type=strategy.fixed, default_qty_value=1,
      commission_type=strategy.commission.cash_per_contract, commission_value=0.15, slippage=5,
      margin_long=5, margin_short=5,   // 1:20 leverage; without this TradingView demands 100 % cash and refuses every order
@@ -130,6 +131,7 @@ var bool  wkHalt     = false
 var int   closedPrev = 0
 
 inPos = strategy.position_size != 0
+string event = ""
 
 // new session day / week
 if sessDay != dayKey
@@ -157,8 +159,13 @@ if strategy.closedtrades > closedPrev
     if wkR <= wkStopR
         wkHalt := true
 
+// just filled
+if inPos and not inPos[1]
+    event := (strategy.position_size > 0 ? "BUY" : "SELL") + " FILLED at " + str.tostring(strategy.position_avg_price, "#.##") + ". Stop " + str.tostring(initStop, "#.##") + ", take half at " + str.tostring(t1Level, "#.##")
+
 // position just closed → clear
 if not inPos and inPos[1]
+    event := "EXIT: trade closed (" + strategy.closedtrades.exit_comment(strategy.closedtrades - 1) + ")"
     pendSide := 0
     initStop := na
     runStop  := na
@@ -170,6 +177,7 @@ if not inPos and inPos[1]
 // ───────────────────────────── Forced flat ─────────────────────────────
 if inPos and mod >= flatMin
     strategy.close_all(comment="time_exit")
+    event := "EXIT at market now: time exit"
 
 // ───────────────────────────── Position management ─────────────────────────────
 if inPos
@@ -181,12 +189,15 @@ if inPos
         t1Done := true
         be = isLong ? strategy.position_avg_price + bePlus : strategy.position_avg_price - bePlus
         runStop := isLong ? math.max(runStop, be) : math.min(runStop, be)
+        event := "TARGET HIT: half closed at " + str.tostring(t1Level, "#.##") + ". Move stop to " + str.tostring(runStop, "#.##")
     if t1Done and trailMult > 0
         tr = isLong ? hhSince - trailMult * atr : llSince + trailMult * atr
         if isLong and tr > runStop and tr < low
             runStop := tr
         if not isLong and tr < runStop and tr > high
             runStop := tr
+        if runStop != runStop[1] and event == ""
+            event := "MOVE STOP to " + str.tostring(runStop, "#.##")
     if usePartial and not t1Done
         strategy.exit("T1",  from_entry=isLong ? "L" : "S", qty_percent=partPct, limit=t1Level, stop=initStop, comment_profit="T1", comment_loss="stop")
         strategy.exit("Run", from_entry=isLong ? "L" : "S", stop=runStop, comment_loss="stop")
@@ -205,6 +216,7 @@ if not inPos and pendSide != 0
     deep = pendSide == 1 ? close < ema - deepAtr * atr : close > ema + deepAtr * atr
     if mod >= cutMin or inNews or deep or adx < adxCancel or bar_index >= lastTouch + expiryN or dayHalt or wkHalt
         strategy.cancel_all()
+        event := "CANCEL pending order (" + (mod >= cutMin ? "16:00 cut-off" : inNews ? "news window" : deep ? "deep break of EMA" : adx < adxCancel ? "ADX fell" : dayHalt or wkHalt ? "daily/weekly stop" : "expired") + ")"
         pendSide := 0
     else
         seqLow  := math.min(seqLow, low)
@@ -217,18 +229,22 @@ if not inPos and pendSide != 0
                 rr = (pendTarget - pendLevel) / (pendLevel - stopEst)
                 if rr < minRR
                     strategy.cancel_all()
+                    event := "CANCEL: reward/risk fell below " + str.tostring(minRR)
                     pendSide := 0
                 else
                     lastTouch := bar_index
+                    event := "MOVE BUY STOP to " + str.tostring(pendLevel, "#.##")
             else
                 pendLevel := low - entryOff
                 stopEst = seqHigh + pendBuf
                 rr = (pendLevel - pendTarget) / (stopEst - pendLevel)
                 if rr < minRR
                     strategy.cancel_all()
+                    event := "CANCEL: reward/risk fell below " + str.tostring(minRR)
                     pendSide := 0
                 else
                     lastTouch := bar_index
+                    event := "MOVE SELL STOP to " + str.tostring(pendLevel, "#.##")
         if pendSide != 0
             // refresh the resting stop order and the stop/target that will apply on fill
             stopEst2 = pendSide == 1 ? seqLow - pendBuf : seqHigh + pendBuf
@@ -292,12 +308,17 @@ if canSignal and armed and touch and not na(atr) and not na(adx)
                     strategy.entry("L", strategy.long, qty=qty, stop=level, comment="buy stop")
                 else
                     strategy.entry("S", strategy.short, qty=qty, stop=level, comment="sell stop")
+                event := "NEW SETUP: place " + (side == 1 ? "BUY STOP " : "SELL STOP ") + str.tostring(level, "#.##") + ", stop " + str.tostring(stopEst, "#.##") + ", target " + str.tostring(target, "#.##") + ", " + str.tostring(qty / 100, "#.##") + " lot"
             else
                 pendSide := 0
 
 // count entries per day
 if inPos and not inPos[1]
     tradesDay += 1
+
+// ───────────────────────────── Alerts (Create Alert → this script → "Any alert() function call") ─────────────────────────────
+if event != ""
+    alert(event, alert.freq_once_per_bar_close)
 
 // ───────────────────────────── Simple visuals ─────────────────────────────
 plot(ema, "EMA20", color=color.new(color.aqua, 0), linewidth=2)
