@@ -55,3 +55,26 @@ is above its value four M15 bars earlier (uptrend; mirrored for a downtrend).
 The strict rule of v5 (mean R > 0 in all three periods, held-out CI excludes zero, PF > 1.10 in both held-out periods
 at base AND stressed costs, at least 60 trades in each, max DD <= 10 R, ex-top-5 > 0). A null or negative result is
 valid and expected.
+
+## Addendum v7b — taking profit sooner on the improved breakout (frozen 2026-11-13, before these three runs)
+
+Already run before this addendum, exploratory and reported as such in VALIDATION_REPORT_v7.md §4: forced exits after
+15 / 30 / 60 / 120 / 240 minutes on HL_C_W01.
+
+New, frozen here before running: the same breakout as HL_C_W01 (swing 10, EMA50 trend filter, minimum stop 0.10 x D1ATR,
+orders 01:00-16:00 London time, stop at the opposite level with the floor and cap, at most 3 entries per session day,
+flat at 20:50) with a smaller profit target instead of 1.5 R. Nothing else changes.
+
+| id | target |
+|---|---|
+| HL_C_W01_T05 | 0.5 R |
+| HL_C_W01_T075 | 0.75 R |
+| HL_C_W01_T10 | 1.0 R |
+
+Purpose: Aayan wants trades that end quickly. A forced exit by the clock removes the edge (§4 of the report); this
+checks the other way to shorten a trade, taking profit sooner. Expectation from the duration table (trades that ended
+within an hour lost, the profit came from trades held more than eight hours): a lower target raises the win rate,
+shortens the median hold and lowers the mean R; 0.5 R is expected to be about zero or negative after costs.
+Decision rule unchanged (the strict v5 rule at base and stressed costs). A variant is only of interest if it also holds
+in the development period, which HL_C_W01 itself does not (+0.006 R, drawdown -26.7 R). These are looks 11 to 13 at the
+same data on this family.
