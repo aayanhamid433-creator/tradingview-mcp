@@ -89,3 +89,23 @@ Limits to know: equity is read at bar closes, so intrabar peaks and the exact 00
 ## EVERY DAY mode (added 2026-11-12 at Aayan's request; tested and rejected in VALIDATION_REPORT_v2.md §8)
 
 MODE "EVERY DAY: v2.2 + forced trade at 13:30 UTC (tested: loses)". Normal v2.2 pullback setups all day; if no entry has happened by the bar that opens at 13:30 UTC, a market order in the direction of the daily bias (DI direction when the bias filter is off; skipped when the bias is undefined), stop 1.5 × ATR14, half off at 1.5 × that distance, remainder on the usual breakeven and trail, flat at 20:45. It fires on the first bar from 13:30 where every gate passes, so on a listed news day it fires one bar later; it never fires on a pullback-setup bar, after the daily or weekly stop, under the account guard, or more than once a day. A "DAILY TRADE skipped: reason" alert explains a missed day. Research numbers for the forced trades: −0.03 to −0.12 R per trade, 40–87 R drawdown, about 60 % losing days. The account guard halts the mode when the drawdown approaches the firm's floor.
+
+## gold_hl_breakout.pine (added 2026-11-13): Aayan's own idea, "mark the highs and lows, trade the break"
+
+A separate strategy script (title "Gold HL Breakout"), same chart and tester settings as above. It marks a high and a low, rests a buy stop 0.10 above the high and a sell stop 0.10 below the low between 07:00 and 16:00 UTC (one cancels the other), and closes everything at 20:45 UTC. The research for it is VALIDATION_REPORT_v5.md (engine `backtest/engine_v5_hl.py`, six pre-registered readings); the script and the engine follow the same frozen rules (results/PREREGISTRATION_v5_hl.md).
+
+| Input | Choices | Research reading |
+|---|---|---|
+| LEVELS | Swing highs and lows (swing size 5 or 10 bars each side) / Yesterday's high and low | HL_SW5, HL_SW10 / HL_PD |
+| EXIT | Target (1.5 x risk) / Trailing stop (3 x ATR, no target) | _RR / _TRAIL |
+| Trade only with the daily trend | off / on | HL_SW5_RR_BIAS when on |
+
+Rules that matter when reading the chart:
+
+- A swing only becomes a marked level once N later bars have closed (no hindsight). The green line is the marked high ("buy above"), the red line the marked low ("sell below").
+- A level that price has already traded through is used up, whether or not an order was resting there. The line ends, the label turns grey ("already broken") and the script waits for the next swing. It never chases.
+- Stop = the opposite marked level, clamped between 0.3 x ATR14 (15-minute) and 0.6 x the daily ATR. The stop and target of a resting order only change when one of the two marked levels changes.
+- At most 3 entries a day with swing levels, 1 with yesterday's levels. No order rests during a bar that overlaps a listed news window. The account guard, the size cap and the alerts are the same as in Gold v2.2.
+- Differences from the research engine: TradingView has one price series (no bid/ask), fills are simulated on 15-minute bars unless the bar magnifier is on, the daily bar boundary is TradingView's, and the account guard is on by default (the research has no guard).
+
+Not compiled here; first compile is Aayan's. If the Pine Editor reports an error, paste it back.
