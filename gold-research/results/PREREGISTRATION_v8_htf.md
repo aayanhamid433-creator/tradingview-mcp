@@ -98,3 +98,20 @@ development and help in 2024 to 2026, when gold trended up.
 The strict rule of v5 (mean R > 0 in all three periods, held-out CI excludes zero, PF > 1.10 in both held-out periods
 at base AND stressed costs, at least 60 trades in each, max DD <= 10 R, ex-top-5 > 0, no adversarial refutation). These
 are looks 19 to 31 at the same data. A null or negative result is valid.
+
+## Addendum v8b — one side only (written 2026-11-13 BEFORE these runs, but AFTER all v8 results were seen: exploratory)
+
+Origin: the placebo analysis of HL_C_W01_RH4 (VALIDATION_REPORT_v8.md section 7) split the trades by side. Over the six
+years the buys taken with the 4-hour trend up made +0.18 R each (540 trades); the sells taken with it down made +0.01 R
+each (376 trades), negative in development and positive in the held-out period. This was found by slicing every period,
+so no part of the data is untouched by it and nothing below can count as validation.
+
+| id | change to HL_C_W01_RH4 |
+|---|---|
+| HL_C_W01_RH4_LONG | buy orders only (no sell orders at all) |
+| HL_C_W01_RH4_SHORT | sell orders only (shown for completeness) |
+
+Purpose: exact numbers for the two sides run on their own (the daily cap and the one-position rule make a simple slice
+inexact), and the drawdown of each, because the account simulation shows that the development drawdown decides whether
+the account survives. Status of whatever comes out: a hypothesis to follow forward on demo, not a tested rule. Looks 32
+and 33.
