@@ -129,3 +129,11 @@ says so in its header, in the red banner row and in the monitor table. Default r
 - A free TradingView plan shows a few days of 1-minute history or a few weeks of 5-minute history. That is 20 to 100
   trades: far too few to tell a 0.08 R loss per trade from a profit. The six-year numbers are the ones to believe.
 - Port check: backtest/verify_v7_pine_port.py (signal sets identical to the research engine). Not compiled here.
+
+## gold_hl_breakout.pine: bigger timeframe for the direction (added 2026-11-13)
+
+Input "BIGGER TIMEFRAME for the direction": Off / 1 hour / **4 hours (default)**. Buy orders exist only while the last
+closed bar of that timeframe is above its rising EMA50, sell orders only while it is below its falling EMA50; the
+15-minute EMA50 filter still applies. Research id HL_C_W01_RH4 (VALIDATION_REPORT_v8.md): about a third fewer trades
+(0.7 a day), +0.19 R per trade instead of +0.14 R, held-out drawdown -6 R instead of -9 R, total +81 R instead of
++94 R over the last 28 months. "Off" reproduces HL_C_W01. The monitor row "BIGGER TREND" shows the state.

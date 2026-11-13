@@ -34,6 +34,12 @@ READINGS = {   # typed from the pre-registration
     "HL_IMP_MS":      dict(levels="swing", n=5,    exit="rr",    cap=3, bias=False, minstop=0.10),
     "HL_IMP_MS_T":    dict(levels="swing", n=5,    exit="rr",    cap=3, bias=False, minstop=0.10, trend=True),
     "HL_IMP10_MS_T":  dict(levels="swing", n=10,   exit="rr",    cap=3, bias=False, minstop=0.10, trend=True),
+    # v5c / v8: orders from 01:00, and a bigger-timeframe direction reference (rebuilt here with pandas, not with htf_refs.py)
+    "HL_C_W01":       dict(levels="swing", n=10,   exit="rr",    cap=3, bias=False, minstop=0.10, trend=True, win_start=60),
+    "HL_C_W01_RH1":   dict(levels="swing", n=10,   exit="rr",    cap=3, bias=False, minstop=0.10, trend=True, win_start=60, ref="h1"),
+    "HL_C_W01_RH4":   dict(levels="swing", n=10,   exit="rr",    cap=3, bias=False, minstop=0.10, trend=True, win_start=60, ref="h4"),
+    "HL_C_W01_RD1":   dict(levels="swing", n=10,   exit="rr",    cap=3, bias=True,  minstop=0.10, trend=True, win_start=60),
+    "HL_C_RH4ONLY":   dict(levels="swing", n=10,   exit="rr",    cap=3, bias=False, minstop=0.10, trend=False, win_start=60, ref="h4"),
 }
 
 
@@ -64,6 +70,22 @@ def prepare(m1: pd.DataFrame):
                 d_hi=d_hi, d_lo=d_lo, d_cl=d_cl, d_atr=d_atr, d_sma=d_sma, d_index={int(k): i for i, k in enumerate(d_id)})
 
 
+def ref_state_per_m15(D, tf):
+    """Direction reference per M15 bar, rebuilt independently of htf_refs.py: bars of the reference timeframe by pandas
+    groupby on floored timestamps (H4 bars start at 22:00, 02:00, ... on the dataset clock), EMA50 by pandas ewm, state
+    = close above a rising EMA50 (up) / below a falling one (down), taken from the reference bar BEFORE the one that
+    contains the last minute of the M15 bar; the first 200 reference bars are warm-up."""
+    idx = D["_m1"].index
+    key = (idx + pd.Timedelta(hours=2)).floor("4h") if tf == "h4" else idx.floor("1h")
+    cl = D["_m1"]["close"].groupby(key).last()
+    ema = cl.ewm(span=50, adjust=False).mean()
+    up = (cl > ema) & (ema > ema.shift(4)); dn = (cl < ema) & (ema < ema.shift(4))
+    ok = pd.Series(np.arange(len(cl)) - 1 >= 200, index=cl.index)
+    up_prev = up.shift(1, fill_value=False) & ok; dn_prev = dn.shift(1, fill_value=False) & ok
+    last_key = key[D["be"] - 1]
+    return up_prev.reindex(last_key).to_numpy(dtype=bool), dn_prev.reindex(last_key).to_numpy(dtype=bool)
+
+
 def brute_pivots(hi, lo, n):
     """{confirmation bar index: price} for swing highs and swing lows, by direct comparison with the n bars on each side."""
     conf_hi, conf_lo = {}, {}
@@ -83,6 +105,8 @@ def replay(vid: str, D: dict):
     d_hi, d_lo, d_cl, d_atr, d_sma = (D[k].tolist() for k in ("d_hi", "d_lo", "d_cl", "d_atr", "d_sma")); d_index = D["d_index"]
     conf_hi, conf_lo = brute_pivots(D["b_hi"], D["b_lo"], spec["n"]) if swing else ({}, {})
     b_cl = D["b_cl"].tolist(); ema50 = D["ema50"].tolist(); f_trend = spec.get("trend", False); f_ms = spec.get("minstop")
+    win_start = spec.get("win_start", WIN_START); f_ref = spec.get("ref")
+    if f_ref: ref_up, ref_dn = ref_state_per_m15(D, f_ref)
     high = low = None          # marked levels: dict(price, trig, live)
     params = {}                # side -> dict(trig, stop, target, dist, calc_bar)
     orders = None; position = None; trades = []; refused = 0
@@ -95,7 +119,7 @@ def replay(vid: str, D: dict):
                 if b in conf_hi: high = dict(price=conf_hi[b], trig=conf_hi[b] + OFFSET, live=True); params = {}
                 if b in conf_lo: low = dict(price=conf_lo[b], trig=conf_lo[b] - OFFSET, live=True); params = {}
             close_mod = b_open[b] % 1440 + 15
-            if position is None and WIN_START <= close_mod < WIN_END:
+            if position is None and win_start <= close_mod < WIN_END:
                 orders = None
                 if (entries < cap and high is not None and low is not None and b >= WARMUP and not math.isnan(atr[b]) and prev is not None):
                     ok_long = ok_short = True
@@ -105,6 +129,8 @@ def replay(vid: str, D: dict):
                     want_long = high["live"] and ok_long; want_short = low["live"] and ok_short
                     if f_trend:   # T: buy side only above EMA50 at this close, sell side only below
                         want_long = want_long and b_cl[b] > ema50[b]; want_short = want_short and b_cl[b] < ema50[b]
+                    if f_ref:     # bigger-timeframe reference: buy side only while it is up, sell side only while it is down
+                        want_long = want_long and bool(ref_up[b]); want_short = want_short and bool(ref_dn[b])
                     if want_long and "long" not in params:
                         raw = high["trig"] - low["price"]; dist = min(max(raw, FLOOR_K * atr[b]), CAP_K * d_atr[prev])
                         params["long"] = dict(trig=high["trig"], stop=high["trig"] - dist, dist=dist, calc_bar=b,
@@ -213,7 +239,7 @@ def compare(vid: str, rep: pd.DataFrame):
 
 def main():
     ids = sys.argv[1:] or list(READINGS)
-    m1 = pd.read_parquet(DATA); D = prepare(m1)
+    m1 = pd.read_parquet(DATA); D = prepare(m1); D["_m1"] = m1
     ok = True
     for vid in ids:
         t0 = time.time(); rep, refused, still_open = replay(vid, D)

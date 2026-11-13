@@ -1,0 +1,98 @@
+[
+  {
+    "param": "hl_pivot_n",
+    "mult": 0.8,
+    "value": 8,
+    "n_oos": 481,
+    "meanR_oos": 0.17655366999755484,
+    "pf_oos": 1.4451552719318606
+  },
+  {
+    "param": "hl_pivot_n",
+    "mult": 1.2,
+    "value": 12,
+    "n_oos": 398,
+    "meanR_oos": 0.1769425108322476,
+    "pf_oos": 1.5086329090795347
+  },
+  {
+    "param": "hl_offset",
+    "mult": 0.8,
+    "value": 0.08000000000000002,
+    "n_oos": 430,
+    "meanR_oos": 0.18525384177611753,
+    "pf_oos": 1.4934495996091999
+  },
+  {
+    "param": "hl_offset",
+    "mult": 1.2,
+    "value": 0.12,
+    "n_oos": 431,
+    "meanR_oos": 0.18756357936569004,
+    "pf_oos": 1.500550400290137
+  },
+  {
+    "param": "hl_stop_cap_d1atr",
+    "mult": 0.8,
+    "value": 0.48,
+    "n_oos": 437,
+    "meanR_oos": 0.18067710708641577,
+    "pf_oos": 1.4656660633487397
+  },
+  {
+    "param": "hl_stop_cap_d1atr",
+    "mult": 1.2,
+    "value": 0.72,
+    "n_oos": 430,
+    "meanR_oos": 0.1820093547753746,
+    "pf_oos": 1.4981846128681195
+  },
+  {
+    "param": "hl_stop_floor_atr",
+    "mult": 0.8,
+    "value": 0.24,
+    "n_oos": 431,
+    "meanR_oos": 0.18791991445183345,
+    "pf_oos": 1.5015970560847163
+  },
+  {
+    "param": "hl_stop_floor_atr",
+    "mult": 1.2,
+    "value": 0.36,
+    "n_oos": 431,
+    "meanR_oos": 0.18791991445183345,
+    "pf_oos": 1.5015970560847163
+  },
+  {
+    "param": "hl_target_mult",
+    "mult": 0.8,
+    "value": 1.2000000000000002,
+    "n_oos": 439,
+    "meanR_oos": 0.14000339212226673,
+    "pf_oos": 1.3869656600422158
+  },
+  {
+    "param": "hl_target_mult",
+    "mult": 1.2,
+    "value": 1.7999999999999998,
+    "n_oos": 427,
+    "meanR_oos": 0.20173387598934697,
+    "pf_oos": 1.5228428197813644
+  },
+  {
+    "param": "hl_max_entries",
+    "mult": 0.8,
+    "value": 2,
+    "n_oos": 430,
+    "meanR_oos": 0.1873051244034463,
+    "pf_oos": 1.4987960636491637
+  },
+  {
+    "param": "hl_max_entries",
+    "mult": 1.2,
+    "value": 4,
+    "n_oos": 431,
+    "meanR_oos": 0.18791991445183345,
+    "pf_oos": 1.5015970560847163
+  }
+]

@@ -42,6 +42,7 @@ import numpy as np, pandas as pd
 from numpy.lib.stride_tricks import sliding_window_view
 import engine as E
 import engine_v2 as V2
+import htf_refs as HR
 
 HERE = pathlib.Path(__file__).resolve().parent
 RESULTS = HERE.parent / "results"
@@ -68,6 +69,7 @@ V5_CONFIG.update(dict(
     # ---- v5b improvement filters (results/PREREGISTRATION_v5b_hl_improve.md); all off in the six frozen readings
     hl_min_stop_d1atr=None,              # MS: no order for a side whose stop distance < k x D1ATR
     hl_trend=None,                       # T: "ema50" -> buy side only above EMA50(M15) at the order-step close, sell side only below
+    hl_ref=None,                         # v8: None | "h1" | "h4" -> buy side only while that timeframe's EMA-trend state (htf_refs.py) is up, sell side only while down
     hl_adx_max=None,                     # Q: no orders at an order step whose bar has ADX14(M15) above this
     hl_min_age_min=None,                 # A: a side needs a level at least this many minutes old
     hl_block_hours=None,                 # H: list of [start, end) "HH:MM" pairs; no order rests in them
@@ -120,6 +122,14 @@ V7B = {
     "HL_C_W01_T10":  dict(_W01, hl_target_mult=1.0),
 }
 VARIANTS.update(V7B)
+# ---- v8 family B: a bigger-timeframe direction reference on top of HL_C_W01 (frozen 2026-11-13 in PREREGISTRATION_v8_htf.md)
+V8B = {
+    "HL_C_W01_RH1": dict(_W01, hl_ref="h1"),
+    "HL_C_W01_RH4": dict(_W01, hl_ref="h4"),
+    "HL_C_W01_RD1": dict(_W01, hl_bias="sma200"),
+    "HL_C_RH4ONLY": dict(_W01, hl_trend=None, hl_ref="h4"),
+}
+VARIANTS.update(V8B)
 OOS = ("2024-07-01", "2026-11-01")       # pooled validation + final test, by signal_bar_open (perturbation report)
 
 hhmm = E.hhmm
@@ -177,6 +187,14 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir):
     max_entries = int(cfg["hl_max_entries"]); warm = int(cfg["warmup_bars"]); bias_mode = cfg["hl_bias"]
     ord_s, ord_e = hhmm(cfg["hl_order_start"]), hhmm(cfg["hl_order_end"])
     is_ph, is_pl = pivot_flags(hi, lo, N) if swing else (None, None)
+    f_ref = cfg.get("hl_ref")
+    if f_ref:
+        # state of the reference at the last M1 bar of each M15 bar (last closed reference bar before the one containing it)
+        tmin_all = m1.index.values.astype("datetime64[m]").astype(np.int64)
+        slot = tmin_all // 60 if f_ref == "h1" else (tmin_all + 120) // 240
+        assert f_ref in ("h1", "h4"), f_ref
+        ref_up_m1, ref_dn_m1 = HR.ema_state(tmin_all, m1_c.astype(float), slot)
+        ref_up15, ref_dn15 = ref_up_m1[bar_end - 1], ref_dn_m1[bar_end - 1]
 
     def prev_day(k):
         i = dpos.get(k)
@@ -296,6 +314,8 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir):
         if f_block and any(a <= (mod15[i] + 15) % 1440 < b for a, b in f_block): wait(close_ts, "WAIT_blocked_hour"); return None
         if f_trend == "ema50":
             want_buy, want_sell = want_buy and cl15[i] > ema50[i], want_sell and cl15[i] < ema50[i]
+        if f_ref:
+            want_buy, want_sell = want_buy and bool(ref_up15[i]), want_sell and bool(ref_dn15[i])
         if f_age is not None:
             age = pd.Timedelta(minutes=int(f_age))
             want_buy = want_buy and (close_ts - pd.Timestamp(H["created"])) >= age

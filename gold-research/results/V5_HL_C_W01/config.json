@@ -26,6 +26,7 @@
     "hl_bias": null,
     "hl_min_stop_d1atr": 0.1,
     "hl_trend": "ema50",
+    "hl_ref": null,
     "hl_adx_max": null,
     "hl_min_age_min": null,
     "hl_block_hours": null,
@@ -62,6 +63,6 @@
   "m1_bars": 2020438,
   "data_start": "2021-01-03 23:00:00+00:00",
   "data_end": "2026-10-30 20:58:00+00:00",
-  "run_seconds": 4.7,
-  "run_time_utc": "2026-11-13T04:58:17.578153+00:00"
+  "run_seconds": 4.9,
+  "run_time_utc": "2026-11-13T05:58:10.287428+00:00"
 }

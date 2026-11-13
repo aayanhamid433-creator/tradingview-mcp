@@ -3,18 +3,23 @@
 // either one, buy or sell". One script: backtest engine (Strategy Tester), simple visuals, alert instructions and the
 // account guard. XAUUSD (FOREX.com), 15-minute chart only. Research and honest numbers: gold-research/VALIDATION_REPORT_v5.md.
 //
-// DEFAULTS = the improved version (research id HL_C_W01): big swings (10 bars each side), trade only with the 15-minute
-// trend (EMA50), skip trades whose stop is tighter than 0.10 x the daily ATR, orders from 01:00 to 16:00 London time.
-// Six-year test, 1 R = the risk of one trade:  2021 -8 R | 2022 +10 R | 2023 -11 R | 2024 +33 R | 2025 +47 R | 2026 +29 R.
-// Last 28 months: 666 trades, PF 1.37, +0.14 R per trade, worst drawdown -9 R, 1.1 trades a day, 75 % of months positive.
-// 2021 to mid-2024 was only break-even (PF 1.01, drawdown -27 R), and negative with a wider spread. It does not pass the
-// project's strict rule; risk default is 0.25 % for that reason. With orders from 07:00 instead (input "Orders from: hour"
-// = 7) it trades less and made about two thirds of the profit. Entries on the 5-minute or 1-minute chart were tested and
-// lose in every period (VALIDATION_REPORT_v5.md section 11); they are not in this script.
-// QUICK IN, QUICK OUT was tested on 2026-11-13 (VALIDATION_REPORT_v7.md): eight fast momentum rules with 5- and 15-minute
-// holds lose in every period, and closing THIS breakout after 15 to 60 minutes leaves no profit. The profit comes from
-// trades that run for hours: the median trade lasts about eight hours and 38 % end at the 20:50 flat. The orders, the
-// stop and the target are placed by the script, so a trade needs no watching.
+// DEFAULTS = research id HL_C_W01_RH4: big swings (10 bars each side); the BIGGER TIMEFRAME gives the direction (Aayan,
+// 2026-11-13): buy orders only while the 4-hour trend is up, sell orders only while it is down, and the 15-minute trend
+// (EMA50) must agree; skip trades whose stop is tighter than 0.10 x the daily ATR; orders from 01:00 to 16:00 London time.
+// Six-year test, 1 R = the risk of one trade:  2021 +8 R | 2022 +21 R | 2023 -13 R | 2024 +17 R | 2025 +43 R | 2026 +29 R.
+// Last 28 months: 431 trades, PF 1.50, +0.19 R per trade, worst drawdown -6 R, 0.7 trades a day (2 days in 3), 86 % of
+// months positive. 2021 to mid-2024 was close to break-even (PF 1.08, drawdown -25 R; zero with a wider spread), so it
+// does not pass the project's strict rule; risk default is 0.25 % for that reason (VALIDATION_REPORT_v8.md).
+// With the bigger timeframe Off (research id HL_C_W01) it trades more (1.1 a day) and made more in the last 28 months
+// (+94 R against +81 R), but less per trade (+0.14 R), with a deeper drawdown (-9 R) and losing years 2021 and 2023.
+// Over the six years, trades against the 4-hour trend made nothing (+0.00 R each); trades with it made +0.11 R each.
+// With orders from 07:00 instead (input "Orders from: hour" = 7) it trades less. Entries on the 5-minute or 1-minute
+// chart lose in every period (VALIDATION_REPORT_v5.md section 11); they are not in this script.
+// QUICK IN, QUICK OUT was tested on 2026-11-13 (VALIDATION_REPORT_v7.md and v8): sixteen fast rules with 5- and 15-minute
+// holds, with the 15-minute, 1-hour, 4-hour or daily direction, lose in every period, and closing THIS breakout after
+// 15 to 60 minutes leaves no profit. The profit comes from trades that run for hours: the median trade lasts about
+// eight hours and more than a third end at the 20:50 flat. The orders, the stop and the target are placed by the
+// script, so a trade needs no watching.
 // The original idea without the three changes (swing 5, trend off, minimum stop 0) is break-even over six years (PF 0.99-1.10).
 //
 // THE RULES
@@ -22,6 +27,8 @@
 //      A swing only counts once N later bars have closed, so nothing is drawn with hindsight.
 //      (LEVELS input: or use yesterday's high and low instead.)
 //      TREND FILTER: the buy order exists only while price closes above the 15-minute EMA50, the sell order only below it.
+//      BIGGER TIMEFRAME (input, default 4 hours): buy orders only while the last closed 4-hour bar is above its rising
+//      EMA50, sell orders only while it is below its falling EMA50. No clear 4-hour direction = no orders.
 //   2. ORDERS between 01:00 and 16:00 London time (= UTC in winter, UTC+1 in summer; the research clock): a BUY STOP 0.10 above the marked high and a SELL STOP 0.10 below the marked
 //      low. When one fills, the other is cancelled. A level that price has already traded through is used up: the
 //      script never chases it and waits for the next swing to form.
@@ -46,6 +53,7 @@ pivN     = input.int(10, "Swing size: bars on each side (10 = big swings, tested
 entryOff = input.float(0.10, "Entry distance beyond the level (USD)", minval=0.01, step=0.05, group=gLvl)
 useTrend = input.bool(true, "Trade only with the 15-minute trend: buy above EMA50, sell below it (tested: improves it)", group=gLvl)
 trendLen = input.int(50, "Trend EMA length (15-minute bars)", minval=5, group=gLvl)
+refTf    = input.string("4 hours", "BIGGER TIMEFRAME for the direction (4 hours = tested best: fewer, better trades; Off = more trades, deeper drawdown)", options=["Off", "1 hour", "4 hours"], group=gLvl)
 minStopK = input.float(0.10, "Skip a trade whose stop is nearer than x daily ATR (0 = off; tiny stops lose to the spread)", minval=0.0, step=0.05, group=gLvl)
 useBias  = input.bool(false, "Also require the daily trend (buy above the 200-day average, sell below it)", group=gLvl)
 smaLen   = input.int(200, "Daily average length", minval=20, group=gLvl)
@@ -118,6 +126,15 @@ atr    = ta.atr(atrLen)
 emaT   = ta.ema(close, trendLen)                 // 15-minute trend line
 trendUp   = not useTrend or close > emaT
 trendDown = not useTrend or close < emaT
+// bigger-timeframe direction (non-repainting): the last CLOSED bar of that timeframe against its EMA50, and the EMA50's slope
+refOn   = refTf != "Off"
+refRes  = refTf == "1 hour" ? "60" : "240"
+refName = refTf == "1 hour" ? "1-hour" : "4-hour"
+[rC, rE, rE4] = request.security(syminfo.tickerid, refRes, [close[1], ta.ema(close, 50)[1], ta.ema(close, 50)[5]], lookahead=barmerge.lookahead_on)
+refUpRaw = not na(rC) and not na(rE4) and rC > rE and rE > rE4
+refDnRaw = not na(rC) and not na(rE4) and rC < rE and rE < rE4
+refUp   = not refOn or refUpRaw
+refDn   = not refOn or refDnRaw
 // previous completed daily bar (non-repainting)
 dClose = request.security(syminfo.tickerid, "D", close[1],  lookahead=barmerge.lookahead_on)
 dSma   = request.security(syminfo.tickerid, "D", ta.sma(close, smaLen)[1], lookahead=barmerge.lookahead_on)
@@ -368,10 +385,10 @@ floorD   = stopFlr * atr
 capD     = na(dAtr) ? 1e10 : stopCap * dAtr
 string why = inPos ? "in a trade" : not ordWin ? "order window closed" : newsSoon ? "news window" : acctHalt ? "account guard" : tradesDay >= maxDayE ? "daily trade limit" : ""
 minStopD = minStopK > 0 and not na(dAtr) ? minStopK * dAtr : 0.0
-okL = canPlace and hiLive and not na(hiLvl) and not na(loLvl) and biasLong and trendUp and close < hiLvl + entryOff
-okS = canPlace and loLive and not na(hiLvl) and not na(loLvl) and biasShort and trendDown and close > loLvl - entryOff
-string whyL = why != "" ? why : not hiLive ? "level already broken" : not trendUp ? "price is below the 15-minute trend line" : not biasLong ? "daily trend is down" : "stop too tight"
-string whyS = why != "" ? why : not loLive ? "level already broken" : not trendDown ? "price is above the 15-minute trend line" : not biasShort ? "daily trend is up" : "stop too tight"
+okL = canPlace and hiLive and not na(hiLvl) and not na(loLvl) and biasLong and trendUp and refUp and close < hiLvl + entryOff
+okS = canPlace and loLive and not na(hiLvl) and not na(loLvl) and biasShort and trendDown and refDn and close > loLvl - entryOff
+string whyL = why != "" ? why : not hiLive ? "level already broken" : not trendUp ? "price is below the 15-minute trend line" : not refUp ? "the " + refName + " trend is not up" : not biasLong ? "daily trend is down" : "stop too tight"
+string whyS = why != "" ? why : not loLive ? "level already broken" : not trendDown ? "price is above the 15-minute trend line" : not refDn ? "the " + refName + " trend is not down" : not biasShort ? "daily trend is up" : "stop too tight"
 bool keepL = false
 bool keepS = false
 if okL
@@ -493,11 +510,11 @@ box.delete(bxR)
 box.delete(bxG)
 if barstate.islast
     if not na(hiLvl)
-        hiOn = hiLive and trendUp and biasLong
-        lbH := label.new(bar_index + 2, hiLvl, hiOn ? "BUY ABOVE " + str.tostring(hiLvl + entryOff, "#.##") : "high " + str.tostring(hiLvl, "#.##") + (not hiLive ? " (already broken)" : " (no buy: trend is down)"), style=label.style_label_left, color=hiOn ? color.new(color.green, 0) : color.new(color.gray, 30), textcolor=color.white, size=size.large)
+        hiOn = hiLive and trendUp and biasLong and refUp
+        lbH := label.new(bar_index + 2, hiLvl, hiOn ? "BUY ABOVE " + str.tostring(hiLvl + entryOff, "#.##") : "high " + str.tostring(hiLvl, "#.##") + (not hiLive ? " (already broken)" : not refUp ? " (no buy: " + refName + " trend is not up)" : " (no buy: trend is down)"), style=label.style_label_left, color=hiOn ? color.new(color.green, 0) : color.new(color.gray, 30), textcolor=color.white, size=size.large)
     if not na(loLvl)
-        loOn = loLive and trendDown and biasShort
-        lbL := label.new(bar_index + 2, loLvl, loOn ? "SELL BELOW " + str.tostring(loLvl - entryOff, "#.##") : "low " + str.tostring(loLvl, "#.##") + (not loLive ? " (already broken)" : " (no sell: trend is up)"), style=label.style_label_left, color=loOn ? color.new(color.red, 0) : color.new(color.gray, 30), textcolor=color.white, size=size.large)
+        loOn = loLive and trendDown and biasShort and refDn
+        lbL := label.new(bar_index + 2, loLvl, loOn ? "SELL BELOW " + str.tostring(loLvl - entryOff, "#.##") : "low " + str.tostring(loLvl, "#.##") + (not loLive ? " (already broken)" : not refDn ? " (no sell: " + refName + " trend is not down)" : " (no sell: trend is up)"), style=label.style_label_left, color=loOn ? color.new(color.red, 0) : color.new(color.gray, 30), textcolor=color.white, size=size.large)
     if inPos and not na(runStop)
         px = strategy.position_avg_price
         bxR := box.new(bar_index - 20, math.max(px, runStop), bar_index + 20, math.min(px, runStop), bgcolor=color.new(color.red, 65), border_color=color.red, border_width=2, text="RISK  (stop " + str.tostring(runStop, "#.##") + ")", text_color=color.white, text_size=size.large)
@@ -526,7 +543,7 @@ if barstate.islast
     f_row(3, "TRADES TODAY", str.tostring(tradesDay) + " of " + str.tostring(maxDayE), tradesDay >= maxDayE ? color.red : color.gray)
     f_row(4, "ORDER WINDOW", ordWin ? "OPEN (" + f_hhmm(startMin) + "-" + f_hhmm(cutMin) + " " + tzTxt + ")" : "CLOSED", ordWin ? color.green : color.gray)
     f_row(5, "15-MIN TREND", useTrend ? (close > emaT ? "UP: only buys" : close < emaT ? "DOWN: only sells" : "flat") : "filter off (buy or sell)", useTrend ? (close > emaT ? color.green : color.red) : color.gray)
-    f_row(6, "LEVELS / EXIT", (pdMode ? "yesterday's high-low" : "swings of " + str.tostring(pivN) + " bars") + " / " + (trailE ? "trailing stop" : "target " + str.tostring(rrT, "#.#") + " x risk"), color.gray)
+    f_row(6, "BIGGER TREND", not refOn ? "filter off (buy or sell)" : refUpRaw ? refName + " UP: only buys" : refDnRaw ? refName + " DOWN: only sells" : refName + " unclear: no orders", not refOn ? color.gray : refUpRaw ? color.green : refDnRaw ? color.red : color.orange)
     f_row(7, "ATR 15m / daily", str.tostring(atr, "#.##") + " / " + (na(dAtr) ? "-" : str.tostring(dAtr, "#.#")), color.gray)
 
 // Account check panel (bottom right)
