@@ -1,6 +1,6 @@
 # VALIDATION REPORT v7 — "quick in, quick out" in the direction of the move, 2026-11-13
 
-Status: **REJECTED. All eight variants lose in every period, before and after the cost stress.** Written by the main
+Status: **REJECTED. All thirteen variants (eight on one-minute bars, five on five-minute bars) lose in every period, before and after the cost stress.** Written by the main
 session; adversarial agent verification is queued (usage limit).
 
 ## 1. Request and rules
@@ -42,6 +42,24 @@ Development drawdowns are 400 to 1,160 R. Before costs, following a burst loses 
 (2026) to 0.21 R (2023) per trade, so every variant loses the spread on every trade. At 0.25 % risk QS_BURST5_H5 would
 have lost about 9 R, roughly 1,100 USD, in an average month of the held-out period.
 
+## 3b. The same rules on 5-minute bars (v7c addendum, frozen before running)
+
+The Pine script (§7) also runs on a 5-minute chart, where a signal is checked every five minutes. That is a different
+list of trades (18 to 45 % of the signals are shared with the one-minute forms), so it was tested instead of assumed.
+
+| variant | trades per day | development mean R / PF | validation | final test | held-out mean R [90 % CI] | held-out, costs doubled |
+|---|---|---|---|---|---|---|
+| QS5_TREND_BRK_H5 (trend + close beyond the previous 5-minute bar, hold 5 min) | 5.9 | -0.212 / 0.32 | -0.115 / 0.49 | -0.057 / 0.67 | -0.086 [-0.097, -0.075] | -0.164 |
+| QS5_TREND_BRK_H15 (hold 15 min) | 5.9 | -0.211 / 0.50 | -0.109 / 0.67 | -0.057 / 0.79 | -0.083 [-0.101, -0.066] | -0.159 |
+| QS5_BURST5_H5 (fast 5-minute bar, hold 5 min) | 1.9 | -0.209 / 0.52 | -0.119 / 0.66 | -0.082 / 0.74 | -0.100 [-0.138, -0.064] | -0.172 |
+| QS5_BURST5_H15 (hold 15 min) | 1.8 | -0.167 / 0.70 | -0.087 / 0.82 | -0.120 / 0.75 | -0.104 [-0.159, -0.047] | -0.173 |
+| QS5_TREND_PB_H5 (trend + pullback, hold 5 min) | 5.8 | -0.191 / 0.34 | -0.115 / 0.47 | -0.039 / 0.76 | -0.077 [-0.088, -0.066] | -0.153 |
+
+All five lose in every period. By calendar year the trend variants make between -0.04 and +0.02 R before costs and lose
+0.3 to 0.5 USD per ounce per trade after costs, in every year from 2021 to 2026: there is nothing in the signal, and the
+spread is paid each time. The stop (1 x ATR14 of the 15-minute chart) grew from about 1.7 USD in 2021 to about 8.4 USD
+in 2026, so the cost in R fell from 0.21 to 0.04 per trade, and the result is still negative.
+
 ## 4. Quick exits on the improved breakout (exploratory, same engine as HL_C_W01)
 
 | forced exit after | held-out trades | mean R | PF | total R | development mean R |
@@ -81,11 +99,30 @@ Rejected. On this data there is no version of "enter fast in the direction of th
 makes money on gold: fast moves do not continue over the next minutes, and each round trip costs 0.35 USD in the research
 model and 0.55 to 0.65 USD at the spread FOREX.com showed off-peak on 2026-11-12/13. The earlier checks agree: v2.2 with a
 15-minute cap kept a fifth of its edge (results/HOLD_CAP_v22.md); 5-minute and 1-minute entries on M15 levels lose
-(VALIDATION_REPORT_v5.md §11); the 15-minute twins of round 3 and FIXT_US_15M lose. No Pine script was built for it.
+(VALIDATION_REPORT_v5.md §11); the 15-minute twins of round 3 and FIXT_US_15M lose.
+
+## 7. The Pine script (pine/gold_quick.pine, built 2026-11-13 because Aayan asked for it)
+
+Purpose: let him see the idea on his own chart. It is not a recommendation. The banner on the chart states the tested
+result for the selected setting ("SIX-YEAR TEST OF THIS SETTING: LOSES 0.08 R PER TRADE ..."), the default risk is
+0.10 %, and the header says demo and Strategy Tester only. It runs on a 1-minute or a 5-minute chart, with the three
+signal types of this report, exits after 5 / 10 / 15 / 30 minutes, the news blackout and the account guard.
+
+Check of the port (backtest/verify_v7_pine_port.py): the script's signal expressions, rewritten operation by operation
+with pandas on chart bars built from the M1 data, give exactly the engine's signals and stop distances over the six
+years: 59,940 (trend breakout, 1-minute), 9,959 / 4,744 / 5,304 (fast move, with trend, 15-minute window), 15,591
+(pullback, 5-minute), and for the 5-minute forms 23,092 / 3,827. Not checked: the Pine code has not been compiled here
+(no TradingView in this environment), and order handling was reviewed by reading only.
+
+Known differences from the engine: costs are a 0.20 USD commission per ounce per fill (0.40 per round trip) instead of
+spread 0.25 plus slippage 0.05 per fill; a short's stop is checked on the chart's bid high without the spread; stops are
+checked on the chart's bars instead of one-minute bars when the chart is 5-minute; the news blackout and the account
+guard remove a few trades; the rule that an entry must open within two minutes of the signal is not coded.
 
 ## 6. Caveats and files
 
-Looks ten to thirteen at the same data; bid-only data with a constant modelled spread; one-minute bars (no tick data, so the order of
+Looks ten to eighteen at the same data; bid-only data with a constant modelled spread; one-minute bars (no tick data, so the order of
 prices inside a minute is unknown; stops are checked conservatively); no news gate.
-Files: backtest/engine_v7_quick.py, results/PREREGISTRATION_v7_quick.md (with the v7b addendum), results/V7_QS_*/ (and
+Files: backtest/engine_v7_quick.py, backtest/verify_v7_pine_port.py, pine/gold_quick.pine, results/PREREGISTRATION_v7_quick.md
+(with the v7b and v7c addenda), results/V7_QS5_*/, results/V7_QS_*/ (and
 *_stress/), results/V5_HL_C_W01_T05, _T075, _T10 (and *_stress/), results/V5_HL_C_W01_stress, results/summary_v7.md.

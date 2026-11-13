@@ -114,3 +114,18 @@ Compiled and run by Aayan on 2026-11-13 (first version: 87 trades, PF 1.05, Aug-
 **Second change of defaults on 2026-11-13 (VALIDATION_REPORT_v5.md §10):** `Orders from: hour` is now 1, so orders rest 01:00-16:00 London time (research variant HL_C_W01: held-out 666 trades, PF 1.37, +0.14 R per trade, +94 R, max drawdown 9 R, 1.09 trades a day; development break-even with a 27 R drawdown; by year -8 / +10 / -11 / +33 / +47 / +29 R; the last three months of data were -2.7 R). Set the hour back to 7 for the previous version described next. Entries on the 5-minute or 1-minute chart were tested and lose in every period (§11); they are not in the script.
 
 **Defaults changed on 2026-11-13 after the six-year test (VALIDATION_REPORT_v5.md):** swing size 10, `Trade only with the 15-minute trend` on (buy side only above EMA50, sell side only below), `Skip a trade whose stop is nearer than x daily ATR` 0.10, risk 0.25 %. This is research variant HL_IMP10_MS_T: held-out 28 months 511 trades, PF 1.34, +0.12 R per trade, max drawdown 10 R, 0.84 trades a day; development 2021 to mid-2024 negative (PF 0.93, drawdown 56 R); by year -17 / +8 / -30 / +18 / +30 / +23 R. It fails the project's strict rule and depends on gold trending. The original (swing 5, trend filter off, minimum stop 0) is break-even over six years. The research engine evaluates the trend filter and the minimum stop exactly as the script does, except that the script recomputes a resting order's stop when it is placed again the next morning.
+
+## gold_quick.pine ("Gold Quick"): the quick in, quick out idea, for the Strategy Tester and demo only
+
+Built on 2026-11-13 because Aayan asked for it. The idea (enter in the direction of the move, leave after 5 to 15
+minutes) lost in every period of the six-year test in all thirteen tested forms (VALIDATION_REPORT_v7.md). The script
+says so in its header, in the red banner row and in the monitor table. Default risk 0.10 %.
+
+- Chart: XAUUSD (FOREX.com), **1-minute or 5-minute**. Any other timeframe stops with a message.
+- Signals: "Trend + small breakout" (default), "Fast move", "Trend + pullback". Trend = last closed 15-minute bar
+  against its EMA50, EMA50 rising or falling. Entry at market at the next bar's open, stop 1 x ATR14(M15) from the fill,
+  exit after 5 / 10 / 15 / 30 minutes, at most 6 trades a day, signals 07:00 to 16:00 London time.
+- Cost: 0.20 USD commission per ounce per fill stands in for spread and slippage (0.40 per round trip).
+- A free TradingView plan shows a few days of 1-minute history or a few weeks of 5-minute history. That is 20 to 100
+  trades: far too few to tell a 0.08 R loss per trade from a profit. The six-year numbers are the ones to believe.
+- Port check: backtest/verify_v7_pine_port.py (signal sets identical to the research engine). Not compiled here.

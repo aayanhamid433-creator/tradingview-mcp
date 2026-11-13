@@ -16,7 +16,7 @@ import engine_v6_mtf as V6
 HERE = pathlib.Path(__file__).resolve().parent
 RES = HERE.parent / "results"; DATA = V6.DATA
 
-BASE = dict(spread=0.25, slippage=0.05, stop_atr=1.0, cap_entries=6, win_start=7 * 60, win_end=16 * 60, flat_at=20 * 60 + 50,
+BASE = dict(chart_tf=1, spread=0.25, slippage=0.05, stop_atr=1.0, cap_entries=6, win_start=7 * 60, win_end=16 * 60, flat_at=20 * 60 + 50,
             warmup_m15=200, max_fill_delay=2, burst_w=5, burst_k=2.0, hold=5, signal="burst", fade=False, need_trend=False)
 VARIANTS = {   # frozen in results/PREREGISTRATION_v7_quick.md
     "QS_BURST5_H5":     dict(signal="burst", burst_w=5, burst_k=2.0, hold=5),
@@ -28,6 +28,14 @@ VARIANTS = {   # frozen in results/PREREGISTRATION_v7_quick.md
     "QS_TREND_PB_H15":  dict(signal="trend_pullback", hold=15),
     "QS_FADE5_H5":      dict(signal="burst", burst_w=5, burst_k=2.0, hold=5, fade=True),
 }
+# v7c addendum (frozen 2026-11-13): the same rules evaluated on 5-minute bars, as the Pine script does on a 5-minute chart
+VARIANTS.update({
+    "QS5_TREND_BRK_H5":  dict(signal="trend_break", hold=5, chart_tf=5),
+    "QS5_TREND_BRK_H15": dict(signal="trend_break", hold=15, chart_tf=5),
+    "QS5_BURST5_H5":     dict(signal="burst", burst_w=5, burst_k=2.0, hold=5, chart_tf=5),
+    "QS5_BURST5_H15":    dict(signal="burst", burst_w=5, burst_k=2.0, hold=15, chart_tf=5),
+    "QS5_TREND_PB_H5":   dict(signal="trend_pullback", hold=5),
+})
 
 
 def signals(cfg, D):
@@ -43,6 +51,28 @@ def signals(cfg, D):
     cmod = (tmin + 1) % 1440
     in_win = (cmod >= cfg["win_start"]) & (cmod < cfg["win_end"]) & ~np.isnan(atr_prev)
     up = np.zeros(n, dtype=bool); dn = np.zeros(n, dtype=bool)
+    if int(cfg.get("chart_tf", 1)) == 5 and cfg["signal"] in ("burst", "trend_break"):
+        # 5-minute-chart form: the condition and the "new signal" rule live on 5-minute bars; the signal sits on the last
+        # M1 bar of the 5-minute bar, so the fill is the open of the next 5-minute bar
+        L5 = D["ltf"][5]; last = np.flatnonzero(np.asarray(L5["is_end"]))
+        hi5, lo5, cl5 = (np.asarray(L5[kk], dtype=float) for kk in ("hi", "lo", "cl")); om5 = np.asarray(L5["open_min"])
+        m = len(cl5); tu5, td5, a5 = trend_up[last], trend_dn[last], atr_prev[last]
+        if cfg["signal"] == "burst":
+            W, k = int(cfg["burst_w"]), float(cfg["burst_k"]); wb = max(1, W // 5)
+            r5 = np.full(m, np.nan); cont5 = np.zeros(m, dtype=bool)
+            r5[wb:] = cl5[wb:] - cl5[:-wb]; cont5[wb:] = (om5[wb:] - om5[:-wb]) == W
+            z5 = r5 / (a5 * math.sqrt(W / 15.0))
+            up5 = cont5 & (z5 >= k); dn5 = cont5 & (z5 <= -k)
+            if cfg["need_trend"]: up5 &= tu5; dn5 &= td5
+        else:
+            cont5 = np.zeros(m, dtype=bool); cont5[1:] = (om5[1:] - om5[:-1]) == 5
+            hh5 = np.r_[np.nan, hi5[:-1]]; ll5 = np.r_[np.nan, lo5[:-1]]
+            up5 = cont5 & tu5 & (cl5 > hh5); dn5 = cont5 & td5 & (cl5 < ll5)
+        up5 = up5 & ~np.r_[False, up5[:-1]]; dn5 = dn5 & ~np.r_[False, dn5[:-1]]
+        up[last] = up5; dn[last] = dn5
+        sig = np.where(up & in_win, 1, np.where(dn & in_win, -1, 0))
+        if cfg["fade"]: sig = -sig
+        return sig.tolist(), (cfg["stop_atr"] * atr_prev).tolist()
     if cfg["signal"] == "burst":
         W, k = int(cfg["burst_w"]), float(cfg["burst_k"])
         r = np.full(n, np.nan); contig = np.zeros(n, dtype=bool)

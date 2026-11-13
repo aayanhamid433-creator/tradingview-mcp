@@ -34,4 +34,19 @@ HL_C_W01_T10_stress    | dev n=1088 R=-0.045 PF=0.90 DD= -67.1 win=48% | val n= 
 HL_C_W01_stress        | dev n=1034 R=-0.037 PF=0.92 DD= -57.2 win=43% | val n= 339 R=+0.104 PF=1.25 DD=  -6.9 win=48% | fin n= 330 R=+0.143 PF=1.38 DD= -10.6 win=51% || OOS R=+0.123 CI[+0.057,+0.187] tot=+82.3 exTop5=+0.113 | 1.10/day, days traded 94%, win days 53%, worst day -3.1R, hold 493m
 ```
 
+## v7c: the quick rules on 5-minute bars (the 5-minute-chart form of pine/gold_quick.pine)
+
+```
+V7_QS5_BURST5_H15      | dev n=2506 R=-0.167 PF=0.70 DD=-424.5 win=35% | val n= 540 R=-0.087 PF=0.82 DD= -56.2 win=39% | fin n= 537 R=-0.120 PF=0.75 DD= -72.3 win=39% || OOS R=-0.104 CI[-0.159,-0.047] tot=-111.6 exTop5=-0.127 | 1.77/day, days traded 83%, win days 42%, worst day -8.2R, hold 15m
+V7_QS5_BURST5_H15_stress | dev n=2521 R=-0.350 PF=0.47 DD=-886.5 win=28% | val n= 542 R=-0.190 PF=0.65 DD=-108.4 win=35% | fin n= 538 R=-0.155 PF=0.69 DD= -88.0 win=38% || OOS R=-0.173 CI[-0.226,-0.118] tot=-186.5 exTop5=-0.196 | 1.77/day, days traded 83%, win days 39%, worst day -8.3R, hold 15m
+V7_QS5_BURST5_H5       | dev n=2643 R=-0.209 PF=0.52 DD=-555.1 win=34% | val n= 571 R=-0.119 PF=0.66 DD= -70.4 win=41% | fin n= 566 R=-0.082 PF=0.74 DD= -49.5 win=43% || OOS R=-0.100 CI[-0.138,-0.064] tot=-114.2 exTop5=-0.113 | 1.86/day, days traded 83%, win days 41%, worst day -8.3R, hold 5m
+V7_QS5_BURST5_H5_stress | dev n=2643 R=-0.385 PF=0.30 DD=-1018.1 win=26% | val n= 571 R=-0.217 PF=0.47 DD=-125.6 win=35% | fin n= 566 R=-0.126 PF=0.63 DD= -71.2 win=41% || OOS R=-0.172 CI[-0.208,-0.135] tot=-195.2 exTop5=-0.185 | 1.86/day, days traded 83%, win days 36%, worst day -8.4R, hold 5m
+V7_QS5_TREND_BRK_H15   | dev n=5375 R=-0.211 PF=0.50 DD=-1147.5 win=35% | val n=1812 R=-0.109 PF=0.67 DD=-200.7 win=42% | fin n=1806 R=-0.057 PF=0.79 DD=-114.6 win=45% || OOS R=-0.083 CI[-0.101,-0.066] tot=-300.5 exTop5=-0.089 | 5.93/day, days traded 99%, win days 36%, worst day -5.2R, hold 15m
+V7_QS5_TREND_BRK_H15_stress | dev n=5375 R=-0.402 PF=0.27 DD=-2170.6 win=26% | val n=1812 R=-0.215 PF=0.45 DD=-389.3 win=35% | fin n=1806 R=-0.102 PF=0.65 DD=-188.3 win=41% || OOS R=-0.159 CI[-0.177,-0.141] tot=-573.7 exTop5=-0.164 | 5.93/day, days traded 99%, win days 26%, worst day -5.9R, hold 15m
+V7_QS5_TREND_BRK_H5    | dev n=5380 R=-0.212 PF=0.32 DD=-1143.3 win=29% | val n=1812 R=-0.115 PF=0.49 DD=-208.5 win=39% | fin n=1806 R=-0.057 PF=0.67 DD=-104.4 win=42% || OOS R=-0.086 CI[-0.097,-0.075] tot=-311.6 exTop5=-0.089 | 5.93/day, days traded 99%, win days 29%, worst day -4.5R, hold 5m
+V7_QS5_TREND_BRK_H5_stress | dev n=5380 R=-0.408 PF=0.12 DD=-2194.6 win=17% | val n=1812 R=-0.223 PF=0.25 DD=-404.2 win=28% | fin n=1806 R=-0.103 PF=0.48 DD=-187.7 win=37% || OOS R=-0.164 CI[-0.174,-0.152] tot=-591.7 exTop5=-0.167 | 5.93/day, days traded 99%, win days 18%, worst day -5.6R, hold 5m
+V7_QS5_TREND_PB_H5     | dev n=5225 R=-0.191 PF=0.34 DD=-997.6 win=31% | val n=1783 R=-0.115 PF=0.47 DD=-205.4 win=37% | fin n=1770 R=-0.039 PF=0.76 DD= -75.7 win=46% || OOS R=-0.077 CI[-0.088,-0.066] tot=-274.4 exTop5=-0.080 | 5.82/day, days traded 99%, win days 33%, worst day -8.3R, hold 5m
+V7_QS5_TREND_PB_H5_stress | dev n=5225 R=-0.385 PF=0.13 DD=-2011.8 win=18% | val n=1783 R=-0.222 PF=0.24 DD=-395.4 win=27% | fin n=1770 R=-0.085 PF=0.55 DD=-152.5 win=40% || OOS R=-0.153 CI[-0.165,-0.142] tot=-545.4 exTop5=-0.156 | 5.82/day, days traded 99%, win days 20%, worst day -8.6R, hold 5m
+```
+
 See VALIDATION_REPORT_v7.md.
