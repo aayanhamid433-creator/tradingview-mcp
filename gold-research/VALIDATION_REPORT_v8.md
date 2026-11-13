@@ -127,9 +127,9 @@ periods; the H4 expectation was written down beforehand from the development eve
 other references is within noise. The filter effect itself (kept against removed trades) is t 2.1 on the whole sample.
 The held-out period is a strong uptrend in gold; longs made +0.216 R and shorts +0.139 R there, but in development
 shorts lost (-0.049 R). Bid data with a constant modelled spread; orders from 01:00 London time meet wider real spreads
-than the model in the Asian hours. TradingView builds 4-hour bars from the 17:00 New York session start; the engine
-uses 22:00 London time, which differs by an hour for a few weeks a year (the clock-anchored variant in §4 shows the
-anchor does not matter).
+than the model in the Asian hours. TradingView builds 4-hour bars from the symbol's session start in New York
+time (17:00 or 18:00; not checked for FOREX.com XAUUSD); the engine uses 22:00 London time. On either grid 96 to 100 %
+of the trades are the same and the held-out result is +0.176 to +0.189 R (§7).
 
 ## 7. Verification log
 
@@ -146,7 +146,24 @@ the usage limit, and the main session ran its scripts afterwards (scratchpad v8v
 - Every figure of §3.3 recomputed from the trade lists agrees (per-period mean R, PF, drawdown, intervals, R by year,
   months positive, the tester window, trades per day 0.714 on 604 held-out weekdays).
 
-Pine review (agent): see the entry at the end of this section.
+Pine review (agent, read at commit a5efed0; nothing can be compiled in this environment).
+- gold_hl_breakout.pine: no reason found that it would not compile or would trade differently from its documentation.
+  The request.security expression returns the same 4-hour bar and state as the engine on historical bars and in real
+  time, including the 15-minute bar that ends together with a 4-hour bar; no repainting; a resting order is cancelled
+  at the close where the state flips, as the engine does.
+- TradingView's 4-hour bar grid, re-run by the reviewer on both grids it could be: session start 17:00 New York gives
+  1,114 of 1,115 identical trades (held-out +0.189 R); 18:00 New York gives 96 % identical trades, development +0.039 R
+  (drawdown -21.4 R), held-out +0.176 R (PF 1.47, +76 R, drawdown -8.2 R), years +10.1 / +14.8 / -10.1 / +24.7 /
+  +39.9 / +23.9 R. To see which applies: 4-hour chart with the clock on London; the second bar of the day opens at
+  02:00 or at 03:00.
+- Three text findings, fixed: the cancel reason when the size rounds down to 0 oz (at 0.15 % of 50,000 a stop wider
+  than 75 USD gives no trade: 9 of the 151 trades of 2026, which the account simulation already leaves out; 80 of the
+  151 are exactly 1 oz, where a 44 USD stop risks 0.09 %); the header sentence on lower-timeframe entries (one of the
+  seven variants was +0.005 R in the final test at base costs); a note on the 4-hour grid.
+- gold_quick.pine, runtime behaviour: no findings.
+- Doubts the reviewer could not settle without a compiler: the tuple form of request.security with history-offset
+  function calls; how far the 4-hour history reaches before the first chart bar; the seeding of ta.ema; the tick size
+  of the symbol (slippage = 5 ticks is 0.05 USD only if the tick is 0.01).
 
 ## 8. Files
 

@@ -14,7 +14,7 @@
 // (+94 R against +81 R), but less per trade (+0.14 R), with a deeper drawdown (-9 R) and losing years 2021 and 2023.
 // Over the six years, trades against the 4-hour trend made nothing (+0.00 R each); trades with it made +0.11 R each. Buys earned most of it (gold mostly rose); sells earned in the falling years 2021 and 2026.
 // With orders from 07:00 instead (input "Orders from: hour" = 7) it trades less. Entries on the 5-minute or 1-minute
-// chart lose in every period (VALIDATION_REPORT_v5.md section 11); they are not in this script.
+// chart lose in development and validation, and in every period with doubled costs (VALIDATION_REPORT_v5.md section 11); they are not in this script.
 // QUICK IN, QUICK OUT was tested on 2026-11-13 (VALIDATION_REPORT_v7.md and v8): sixteen fast rules with 5- and 15-minute
 // holds, with the 15-minute, 1-hour, 4-hour or daily direction, lose in every period, and closing THIS breakout after
 // 15 to 60 minutes leaves no profit. The profit comes from trades that run for hours: the median trade lasts about
@@ -36,7 +36,7 @@
 //      0.3 x ATR14 of the 15-minute chart.
 //   4. EXIT at a target of 1.5 x the risk, or (EXIT input) no target and a stop that trails 3 x ATR behind price.
 //      Everything is closed at 20:45 London time. At most 3 entries a day (1 with yesterday's levels).
-//   5. SIZE = 0.15 % of equity / stop distance, in ounces (100 oz = 1.00 lot), capped at 50 % margin use and 2 lots.
+//   5. SIZE = 0.15 % of equity / stop distance, rounded down to whole ounces (100 oz = 1.00 lot), capped at 50 % margin use and 2 lots. A stop wider than the risk in USD (75 on 50,000) gives 0 oz and the trade is skipped.
 //
 // SETUP: Strategy Tester > Settings > Properties: capital 50000, commission 0.15 per contract, slippage 5 ticks.
 // Style tab: untick "Trades on chart". Create Alert > this script > "Any alert() function call" for phone messages.
@@ -127,6 +127,8 @@ emaT   = ta.ema(close, trendLen)                 // 15-minute trend line
 trendUp   = not useTrend or close > emaT
 trendDown = not useTrend or close < emaT
 // bigger-timeframe direction (non-repainting): the last CLOSED bar of that timeframe against its EMA50, and the EMA50's slope
+// TradingView starts its 4-hour bars at the symbol's session start (New York time); the research used 22:00, 02:00, 06:00, 10:00,
+// 14:00, 18:00 London time. Re-run on both possible TradingView grids: 96 to 100 % of the trades are the same.
 refOn   = refTf != "Off"
 refRes  = refTf == "1 hour" ? "60" : "240"
 refName = refTf == "1 hour" ? "1-hour" : "4-hour"
@@ -387,8 +389,8 @@ string why = inPos ? "in a trade" : not ordWin ? "order window closed" : newsSoo
 minStopD = minStopK > 0 and not na(dAtr) ? minStopK * dAtr : 0.0
 okL = canPlace and hiLive and not na(hiLvl) and not na(loLvl) and biasLong and trendUp and refUp and close < hiLvl + entryOff
 okS = canPlace and loLive and not na(hiLvl) and not na(loLvl) and biasShort and trendDown and refDn and close > loLvl - entryOff
-string whyL = why != "" ? why : not hiLive ? "level already broken" : not trendUp ? "price is below the 15-minute trend line" : not refUp ? "the " + refName + " trend is not up" : not biasLong ? "daily trend is down" : "stop too tight"
-string whyS = why != "" ? why : not loLive ? "level already broken" : not trendDown ? "price is above the 15-minute trend line" : not refDn ? "the " + refName + " trend is not down" : not biasShort ? "daily trend is up" : "stop too tight"
+string whyL = why != "" ? why : not hiLive ? "level already broken" : not trendUp ? "price is below the 15-minute trend line" : not refUp ? "the " + refName + " trend is not up" : not biasLong ? "daily trend is down" : "stop too tight, or too wide for the smallest size at this risk"
+string whyS = why != "" ? why : not loLive ? "level already broken" : not trendDown ? "price is above the 15-minute trend line" : not refDn ? "the " + refName + " trend is not down" : not biasShort ? "daily trend is up" : "stop too tight, or too wide for the smallest size at this risk"
 bool keepL = false
 bool keepS = false
 if okL
