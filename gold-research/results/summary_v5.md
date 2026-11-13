@@ -1,0 +1,23 @@
+# summary_v5 — high/low breakout (v5 six readings + v5b eight improvement variants), generated 2026-11-13
+
+One line per variant: development | validation | final test || pooled held-out (validation + final test). R per trade, PF, max drawdown in R, win rate;
+held-out 90 % bootstrap CI, total R, mean R without the five best trades, trades per weekday, share of weekdays with a trade, share of traded days that end positive, worst day, median hold.
+
+```
+HL_IMP10_MS_T          | dev n= 859 R=-0.034 PF=0.93 DD= -56.3 win=43% | val n= 264 R=+0.139 PF=1.39 DD=  -7.6 win=54% | fin n= 247 R=+0.102 PF=1.29 DD= -10.2 win=50% || OOS R=+0.121 CI[+0.051,+0.191] tot=+61.7 exTop5=+0.107 | 0.84/day, days traded 80%, win days 52%, worst day -2.0R, hold 388m
+HL_IMP_MS              | dev n=1241 R=+0.017 PF=1.03 DD= -60.5 win=44% | val n= 397 R=+0.014 PF=1.03 DD= -13.3 win=45% | fin n= 362 R=+0.056 PF=1.12 DD= -31.3 win=49% || OOS R=+0.034 CI[-0.029,+0.098] tot=+25.8 exTop5=+0.024 | 1.24/day, days traded 97%, win days 50%, worst day -3.0R, hold 312m
+HL_IMP_MS_EOD          | dev n=1139 R=-0.007 PF=0.99 DD= -62.0 win=36% | val n= 372 R=+0.008 PF=1.02 DD= -17.1 win=39% | fin n= 338 R=+0.028 PF=1.05 DD= -41.0 win=43% || OOS R=+0.018 CI[-0.066,+0.103] tot=+12.7 exTop5=-0.025 | 1.16/day, days traded 97%, win days 43%, worst day -3.7R, hold 432m
+HL_IMP_MS_T            | dev n=1073 R=-0.009 PF=0.98 DD= -66.2 win=44% | val n= 358 R=+0.072 PF=1.16 DD= -12.1 win=47% | fin n= 308 R=+0.075 PF=1.17 DD= -18.1 win=50% || OOS R=+0.073 CI[+0.007,+0.141] tot=+48.9 exTop5=+0.063 | 1.09/day, days traded 90%, win days 52%, worst day -3.0R, hold 313m
+HL_IMP_MS_T_A          | dev n= 731 R=+0.025 PF=1.05 DD= -43.5 win=45% | val n= 233 R=+0.046 PF=1.10 DD= -11.1 win=46% | fin n= 212 R=+0.111 PF=1.26 DD=  -5.8 win=48% || OOS R=+0.077 CI[-0.005,+0.161] tot=+34.3 exTop5=+0.061 | 0.73/day, days traded 66%, win days 49%, worst day -2.0R, hold 305m
+HL_IMP_MS_T_H          | dev n= 853 R=+0.003 PF=1.01 DD= -64.0 win=45% | val n= 301 R=+0.036 PF=1.08 DD= -11.2 win=45% | fin n= 265 R=+0.028 PF=1.06 DD= -20.6 win=48% || OOS R=+0.032 CI[-0.039,+0.105] tot=+18.3 exTop5=+0.019 | 0.93/day, days traded 80%, win days 48%, worst day -3.0R, hold 308m
+HL_IMP_MS_T_Q          | dev n= 787 R=-0.001 PF=1.00 DD= -57.3 win=44% | val n= 267 R=+0.080 PF=1.17 DD=  -8.2 win=47% | fin n= 233 R=+0.055 PF=1.12 DD= -15.8 win=48% || OOS R=+0.069 CI[-0.010,+0.148] tot=+34.4 exTop5=+0.054 | 0.82/day, days traded 70%, win days 50%, worst day -3.0R, hold 293m
+HL_IMP_MS_T_Q_A        | dev n= 548 R=+0.009 PF=1.02 DD= -34.2 win=43% | val n= 186 R=+0.039 PF=1.08 DD= -10.4 win=45% | fin n= 163 R=+0.107 PF=1.25 DD=  -8.0 win=47% || OOS R=+0.071 CI[-0.023,+0.164] tot=+24.7 exTop5=+0.050 | 0.57/day, days traded 52%, win days 48%, worst day -2.0R, hold 294m
+HL_PD_RR               | dev n= 394 R=-0.010 PF=0.97 DD= -19.8 win=46% | val n=  99 R=+0.065 PF=1.25 DD=  -5.0 win=48% | fin n=  78 R=+0.099 PF=1.39 DD=  -3.5 win=53% || OOS R=+0.080 CI[-0.014,+0.175] tot=+14.2 exTop5=+0.039 | 0.29/day, days traded 29%, win days 50%, worst day -1.0R, hold 397m
+HL_PD_TRAIL            | dev n= 394 R=-0.037 PF=0.79 DD= -17.5 win=33% | val n=  99 R=+0.021 PF=1.12 DD=  -2.9 win=41% | fin n=  78 R=+0.085 PF=1.58 DD=  -2.5 win=49% || OOS R=+0.050 CI[-0.009,+0.111] tot=+8.8 exTop5=+0.007 | 0.29/day, days traded 29%, win days 45%, worst day -1.0R, hold 139m
+HL_SW10_RR             | dev n= 941 R=-0.048 PF=0.90 DD= -82.2 win=43% | val n= 282 R=+0.112 PF=1.30 DD=  -7.6 win=52% | fin n= 273 R=+0.067 PF=1.18 DD= -17.5 win=48% || OOS R=+0.090 CI[+0.024,+0.157] tot=+49.9 exTop5=+0.077 | 0.91/day, days traded 86%, win days 51%, worst day -2.0R, hold 383m
+HL_SW5_RR              | dev n=1276 R=-0.005 PF=0.99 DD= -70.4 win=43% | val n= 407 R=-0.007 PF=0.99 DD= -18.7 win=44% | fin n= 367 R=+0.048 PF=1.10 DD= -30.8 win=48% || OOS R=+0.019 CI[-0.043,+0.083] tot=+14.8 exTop5=+0.009 | 1.27/day, days traded 97%, win days 50%, worst day -3.3R, hold 308m
+HL_SW5_RR_BIAS         | dev n= 672 R=-0.031 PF=0.94 DD= -69.9 win=43% | val n= 286 R=+0.000 PF=1.00 DD= -15.2 win=45% | fin n= 267 R=+0.073 PF=1.16 DD=  -9.9 win=48% || OOS R=+0.035 CI[-0.038,+0.113] tot=+19.5 exTop5=+0.022 | 0.91/day, days traded 78%, win days 48%, worst day -3.3R, hold 299m
+HL_SW5_TRAIL           | dev n=1698 R=-0.045 PF=0.88 DD= -88.4 win=33% | val n= 545 R=-0.047 PF=0.87 DD= -41.6 win=34% | fin n= 484 R=-0.016 PF=0.96 DD= -42.5 win=33% || OOS R=-0.032 CI[-0.084,+0.020] tot=-33.2 exTop5=-0.061 | 1.69/day, days traded 97%, win days 41%, worst day -2.7R, hold 159m
+```
+
+See VALIDATION_REPORT_v5.md for the reading.

@@ -109,4 +109,6 @@ Rules that matter when reading the chart:
 - At most 3 entries a day with swing levels, 1 with yesterday's levels. No order rests during a bar that overlaps a listed news window. The account guard, the size cap and the alerts are the same as in Gold v2.2.
 - Differences from the research engine: TradingView has one price series (no bid/ask), fills are simulated on 15-minute bars unless the bar magnifier is on, the daily bar boundary is TradingView's, and the account guard is on by default (the research has no guard).
 
-Not compiled here; first compile is Aayan's. If the Pine Editor reports an error, paste it back.
+Compiled and run by Aayan on 2026-11-13 (first version: 87 trades, PF 1.05, Aug-Nov 2026).
+
+**Defaults changed on 2026-11-13 after the six-year test (VALIDATION_REPORT_v5.md):** swing size 10, `Trade only with the 15-minute trend` on (buy side only above EMA50, sell side only below), `Skip a trade whose stop is nearer than x daily ATR` 0.10, risk 0.25 %. This is research variant HL_IMP10_MS_T: held-out 28 months 511 trades, PF 1.34, +0.12 R per trade, max drawdown 10 R, 0.84 trades a day; development 2021 to mid-2024 negative (PF 0.93, drawdown 56 R); by year -17 / +8 / -30 / +18 / +30 / +23 R. It fails the project's strict rule and depends on gold trending. The original (swing 5, trend filter off, minimum stop 0) is break-even over six years. The research engine evaluates the trend filter and the minimum stop exactly as the script does, except that the script recomputes a resting order's stop when it is placed again the next morning.
