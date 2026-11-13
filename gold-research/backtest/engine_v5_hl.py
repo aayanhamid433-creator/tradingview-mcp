@@ -112,6 +112,14 @@ V5C = {
     "HL_C_E5":      dict(_C, hl_order_end="19:00", hl_max_entries=5),
 }
 VARIANTS.update(V5C)
+# ---- v7b: smaller profit targets on HL_C_W01 (frozen 2026-11-13 in the v7b addendum of PREREGISTRATION_v7_quick.md)
+_W01 = dict(_C, hl_order_start="01:00")
+V7B = {
+    "HL_C_W01_T05":  dict(_W01, hl_target_mult=0.5),
+    "HL_C_W01_T075": dict(_W01, hl_target_mult=0.75),
+    "HL_C_W01_T10":  dict(_W01, hl_target_mult=1.0),
+}
+VARIANTS.update(V7B)
 OOS = ("2024-07-01", "2026-11-01")       # pooled validation + final test, by signal_bar_open (perturbation report)
 
 hhmm = E.hhmm

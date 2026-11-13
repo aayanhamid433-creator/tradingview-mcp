@@ -57,6 +57,24 @@ With costs doubled the 15- and 60-minute versions are negative (-0.015 and -0.01
 held-out trades that lasted more than eight hours made +83.3 R of the +94.1 R; the 32 trades that ended within an hour
 lost 14.7 R. The breakout earns by being held through the day.
 
+## 4b. Taking profit sooner on the improved breakout (v7b addendum, frozen before running)
+
+Same breakout as HL_C_W01, only the profit target changes. Held-out period (2024-07 to 2026-10) unless stated.
+
+| target | trades | win rate | mean R [90 % CI] | PF validation / final test | total R | median time in a trade | trades over within 1 hour | development mean R / drawdown | held-out mean R, costs doubled |
+|---|---|---|---|---|---|---|---|---|---|
+| 1.5 R (HL_C_W01) | 666 | 50 % | +0.141 [+0.076, +0.206] | 1.35 / 1.39 | +94.1 | 8.2 hours | 5 % | +0.006 / -26.7 R | +0.123 |
+| 1.0 R | 697 | 54 % | +0.104 [+0.051, +0.159] | 1.28 / 1.31 | +72.6 | 6.7 hours | 10 % | +0.001 / -28.0 R | +0.084 |
+| 0.75 R | 730 | 58 % | +0.066 [+0.019, +0.113] | 1.15 / 1.26 | +48.5 | 5.5 hours | 14 % | -0.019 / -33.3 R | +0.051 |
+| 0.5 R | 777 | 65 % | +0.031 [-0.007, +0.068] | 1.09 / 1.13 | +23.8 | 3.6 hours | 22 % | -0.026 / -42.6 R | +0.011 |
+
+Each step down in the target raises the win rate and lowers the profit. At 0.5 R the held-out result is no longer
+distinguishable from zero and the development period loses; the typical trade still lasts three and a half hours,
+because the stop sits at the opposite swing level and losing trades take a median of six hours to resolve. In the 1.5 R
+version 252 of the 666 held-out trades (38 %) end at the 20:50 flat, 179 at the target and 219 at the stop: the rule is,
+in effect, "enter on the break and hold for the rest of the day". No smaller target passes the strict rule (development
+mean R is zero or negative for all of them, as for HL_C_W01 itself). The 1.5 R target stays.
+
 ## 5. Verdict and what it means
 
 Rejected. On this data there is no version of "enter fast in the direction of the move and leave within minutes" that
@@ -67,7 +85,7 @@ model and 0.55 to 0.65 USD at the spread FOREX.com showed off-peak on 2026-11-12
 
 ## 6. Caveats and files
 
-Tenth look at the same data; bid-only data with a constant modelled spread; one-minute bars (no tick data, so the order of
+Looks ten to thirteen at the same data; bid-only data with a constant modelled spread; one-minute bars (no tick data, so the order of
 prices inside a minute is unknown; stops are checked conservatively); no news gate.
-Files: backtest/engine_v7_quick.py, results/PREREGISTRATION_v7_quick.md, results/V7_QS_*/ (and *_stress/),
-results/summary_v7.md.
+Files: backtest/engine_v7_quick.py, results/PREREGISTRATION_v7_quick.md (with the v7b addendum), results/V7_QS_*/ (and
+*_stress/), results/V5_HL_C_W01_T05, _T075, _T10 (and *_stress/), results/V5_HL_C_W01_stress, results/summary_v7.md.
