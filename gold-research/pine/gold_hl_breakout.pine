@@ -11,6 +11,10 @@
 // project's strict rule; risk default is 0.25 % for that reason. With orders from 07:00 instead (input "Orders from: hour"
 // = 7) it trades less and made about two thirds of the profit. Entries on the 5-minute or 1-minute chart were tested and
 // lose in every period (VALIDATION_REPORT_v5.md section 11); they are not in this script.
+// QUICK IN, QUICK OUT was tested on 2026-11-13 (VALIDATION_REPORT_v7.md): eight fast momentum rules with 5- and 15-minute
+// holds lose in every period, and closing THIS breakout after 15 to 60 minutes leaves no profit. The profit comes from
+// trades that run for hours: the median trade lasts about eight hours and 38 % end at the 20:50 flat. The orders, the
+// stop and the target are placed by the script, so a trade needs no watching.
 // The original idea without the three changes (swing 5, trend off, minimum stop 0) is break-even over six years (PF 0.99-1.10).
 //
 // THE RULES
@@ -48,12 +52,12 @@ smaLen   = input.int(200, "Daily average length", minval=20, group=gLvl)
 
 gExit    = "2. STOP and EXIT"
 exitMode = input.string("Target", "EXIT", options=["Target", "Trailing stop (no target)"], group=gExit)
-rrT      = input.float(1.5, "Target = x risk", minval=0.5, step=0.1, group=gExit)
+rrT      = input.float(1.5, "Target = x risk (1.5 = tested best; 1.0 kept three quarters of the profit; 0.5 kept a quarter and trades still lasted hours)", minval=0.5, step=0.1, group=gExit)
 stopCap  = input.float(0.6, "Stop never further than x daily ATR", minval=0.1, step=0.1, group=gExit)
 stopFlr  = input.float(0.3, "Stop never nearer than x ATR14 of the 15-minute chart", minval=0.05, step=0.05, group=gExit)
 trailMult= input.float(3.0, "Trailing stop distance x ATR14", minval=0.5, step=0.5, group=gExit)
 atrLen   = input.int(14, "ATR length", minval=2, group=gExit)
-maxHoldB = input.int(0, "Max hold in 15-min bars (0 = off; 1 = out within 15 min; 2 = within 30 min)", minval=0, group=gExit)
+maxHoldB = input.int(0, "Max hold in 15-min bars (0 = off, tested best; 1 to 4 = out within 15 to 60 min: tested, the profit goes to zero; 16 = 4 hours: kept about 60 %)", minval=0, group=gExit)
 
 gTime    = "3. SESSION (London time)"
 sessTz   = input.string("Europe/London", "Session clock (the research data runs on London time = UTC in winter, UTC+1 in summer)", options=["Europe/London", "UTC"], group=gTime)
