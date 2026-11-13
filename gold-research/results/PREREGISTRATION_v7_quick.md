@@ -78,3 +78,24 @@ shortens the median hold and lowers the mean R; 0.5 R is expected to be about ze
 Decision rule unchanged (the strict v5 rule at base and stressed costs). A variant is only of interest if it also holds
 in the development period, which HL_C_W01 itself does not (+0.006 R, drawdown -26.7 R). These are looks 11 to 13 at the
 same data on this family.
+
+## Addendum v7c — the 5-minute-chart forms of the same rules (frozen 2026-11-13, before these five runs)
+
+Reason: Aayan asked for the Pine script. pine/gold_quick.pine runs on a 1-minute chart (the tested M1 forms) and also on
+a 5-minute chart, where his plan shows more history and where a signal is checked only at 5-minute closes. A comparison
+of the signal sets (counts only, no outcomes looked at) showed that the 5-minute forms of the burst and breakout rules
+share only 18 to 45 % of their signals with the M1 forms, so they are tested here instead of assumed.
+
+Rules as in the main section, except that the signal is evaluated on 5-minute bars built from the M1 data (closes at
+:00, :05, ...) and the entry is the open of the next 5-minute bar. Stops and exits are still handled on M1 bars.
+
+| id | signal on 5-minute bars | hold H |
+|---|---|---|
+| QS5_TREND_BRK_H5 | trend state and a 5-minute close beyond the extreme of the previous 5-minute bar, new on this bar | 5 min |
+| QS5_TREND_BRK_H15 | same | 15 min |
+| QS5_BURST5_H5 | close-to-close move of the 5-minute bar at least 2 x ATR14(M15) x sqrt(5 / 15), new on this bar | 5 min |
+| QS5_BURST5_H15 | same | 15 min |
+| QS5_TREND_PB_H5 | the pullback rule of QS_TREND_PB_H15 | 5 min |
+
+Decision rule unchanged. Expectation: all five lose, like the M1 forms. These are looks 14 to 18; their purpose is that
+the banner of the Pine script can state a tested result for the settings Aayan is most likely to run.
