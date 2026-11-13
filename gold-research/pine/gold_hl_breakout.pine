@@ -7,13 +7,13 @@
 //   1. MARK the last swing high and the last swing low: a bar whose high (low) is the extreme of N bars on each side.
 //      A swing only counts once N later bars have closed, so nothing is drawn with hindsight.
 //      (LEVELS input: or use yesterday's high and low instead.)
-//   2. ORDERS between 07:00 and 16:00 UTC: a BUY STOP 0.10 above the marked high and a SELL STOP 0.10 below the marked
+//   2. ORDERS between 07:00 and 16:00 London time (= UTC in winter, UTC+1 in summer; the research clock): a BUY STOP 0.10 above the marked high and a SELL STOP 0.10 below the marked
 //      low. When one fills, the other is cancelled. A level that price has already traded through is used up: the
 //      script never chases it and waits for the next swing to form.
 //   3. STOP at the opposite marked level, but never further than 0.6 x the daily ATR and never nearer than
 //      0.3 x ATR14 of the 15-minute chart.
 //   4. EXIT at a target of 1.5 x the risk, or (EXIT input) no target and a stop that trails 3 x ATR behind price.
-//      Everything is closed at 20:45 UTC. At most 3 entries a day (1 with yesterday's levels).
+//      Everything is closed at 20:45 London time. At most 3 entries a day (1 with yesterday's levels).
 //   5. SIZE = 0.5 % of equity / stop distance, in ounces (100 oz = 1.00 lot), capped at 50 % margin use and 2 lots.
 //
 // SETUP: Strategy Tester > Settings > Properties: capital 50000, commission 0.15 per contract, slippage 5 ticks.
@@ -41,7 +41,8 @@ trailMult= input.float(3.0, "Trailing stop distance x ATR14", minval=0.5, step=0
 atrLen   = input.int(14, "ATR length", minval=2, group=gExit)
 maxHoldB = input.int(0, "Max hold in 15-min bars (0 = off; 1 = out within 15 min; 2 = within 30 min)", minval=0, group=gExit)
 
-gTime    = "3. SESSION (UTC)"
+gTime    = "3. SESSION (London time)"
+sessTz   = input.string("Europe/London", "Session clock (the research data runs on London time = UTC in winter, UTC+1 in summer)", options=["Europe/London", "UTC"], group=gTime)
 startH   = input.int(7,  "Orders from: hour", minval=0, maxval=23, group=gTime)
 startM   = input.int(0,  "Orders from: minute", minval=0, maxval=59, group=gTime)
 cutH     = input.int(16, "Cancel unfilled orders at: hour", minval=0, maxval=23, group=gTime)
@@ -112,7 +113,8 @@ pivHigh   = not pdMode and bar_index >= 2 * pivN and not na(winH) and high[pivN]
 pivLow    = not pdMode and bar_index >= 2 * pivN and not na(winL) and low[pivN] <= winL
 
 // ───────────────────────────── Time gates and news ─────────────────────────────
-mod      = hour(time, "UTC") * 60 + minute(time, "UTC")          // bar OPEN time, minutes of day
+mod      = hour(time, sessTz) * 60 + minute(time, sessTz)        // bar OPEN time, minutes of day, on the session clock
+tzTxt    = sessTz == "UTC" ? "UTC" : "London time"
 modC     = mod + 15                                              // bar CLOSE time, minutes of day
 startMin = startH * 60 + startM
 cutMin   = cutH * 60 + cutM
@@ -437,7 +439,7 @@ if acctFlat
     whatToDo  := "CLOSE EVERYTHING IN MT5 NOW. " + flatReason + "."
 else if inPos
     statusTxt := "IN TRADE"
-    whatToDo  := trailE ? "IN A TRADE. Keep the stop at " + str.tostring(runStop, "#.##") + " (it trails). Out by " + f_hhmm(flatMin + 15) + " UTC." : "IN A TRADE. Do nothing. Stop " + str.tostring(runStop, "#.##") + ", target " + str.tostring(tgt, "#.##") + "."
+    whatToDo  := trailE ? "IN A TRADE. Keep the stop at " + str.tostring(runStop, "#.##") + " (it trails). Out by " + f_hhmm(flatMin + 15) + " " + tzTxt + "." : "IN A TRADE. Do nothing. Stop " + str.tostring(runStop, "#.##") + ", target " + str.tostring(tgt, "#.##") + "."
     row1      := (strategy.position_size > 0 ? "BOUGHT at " : "SOLD at ") + str.tostring(strategy.position_avg_price, "#.##") + "  |  " + str.tostring(math.abs(strategy.position_size) / 100, "#.##") + " lot"
 else if pendL or pendS
     statusTxt := "ORDERS WAITING"
@@ -447,7 +449,7 @@ else if acctHalt
 else if tradesDay >= maxDayE
     whatToDo  := "DO NOTHING. Daily trade limit reached (" + str.tostring(maxDayE) + ")."
 else if not ordWin
-    whatToDo  := "DO NOTHING. Orders only between " + f_hhmm(startMin) + " and " + f_hhmm(cutMin) + " UTC."
+    whatToDo  := "DO NOTHING. Orders only between " + f_hhmm(startMin) + " and " + f_hhmm(cutMin) + " " + tzTxt + "."
 else if newsSoon
     whatToDo  := "DO NOTHING. News window."
 if not inPos and pendL
@@ -495,7 +497,7 @@ if barstate.islast
     f_row(1, "LOW (sell below)", na(loLvl) ? "-" : str.tostring(loLvl, "#.##") + (loLive ? "  WAITING" : "  already broken"), loLive ? color.red : color.gray)
     f_row(2, "STATUS", statusTxt, stateCol)
     f_row(3, "TRADES TODAY", str.tostring(tradesDay) + " of " + str.tostring(maxDayE), tradesDay >= maxDayE ? color.red : color.gray)
-    f_row(4, "ORDER WINDOW", ordWin ? "OPEN (" + f_hhmm(startMin) + "-" + f_hhmm(cutMin) + " UTC)" : "CLOSED", ordWin ? color.green : color.gray)
+    f_row(4, "ORDER WINDOW", ordWin ? "OPEN (" + f_hhmm(startMin) + "-" + f_hhmm(cutMin) + " " + tzTxt + ")" : "CLOSED", ordWin ? color.green : color.gray)
     f_row(5, "DAILY TREND FILTER", useBias ? (biasLong ? "ONLY BUY" : biasShort ? "ONLY SELL" : "none") : "off (buy or sell)", useBias ? (biasLong ? color.green : color.red) : color.gray)
     f_row(6, "LEVELS / EXIT", (pdMode ? "yesterday's high-low" : "swings of " + str.tostring(pivN) + " bars") + " / " + (trailE ? "trailing stop" : "target " + str.tostring(rrT, "#.#") + " x risk"), color.gray)
     f_row(7, "ATR 15m / daily", str.tostring(atr, "#.##") + " / " + (na(dAtr) ? "-" : str.tostring(dAtr, "#.#")), color.gray)

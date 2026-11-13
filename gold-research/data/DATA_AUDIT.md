@@ -10,6 +10,7 @@ Generated: 2026-11-09 02:16 UTC
 | Source | https://www.histdata.com/download-free-forex-historical-data/?/metatrader/1-minute-bar-quotes/xauusd |
 | Price basis | BID quotes only (per HistData FAQ). No ask, no spread, no volume (column is 0). |
 | Native timezone | EST (UTC-5) with no DST; converted to UTC with a fixed +5h. Bar time = bar open. |
+| Clock correction (2026-11-13) | The stamps follow New York local time (EST/EDT), not fixed EST, so the +5h index is London local time (UTC in winter, UTC+1 in summer) although it is labelled UTC. See PROJECT_STATE.md working rules. |
 | Range (UTC) | 2021-01-03 23:00:00+00:00 to 2026-10-30 20:58:00+00:00 |
 | Bars | 2,020,438 |
 | Duplicate timestamps removed | 1504 |

@@ -16,6 +16,8 @@
 //   4. Read the Properties tab, then List of Trades. Compare periods separately: 2021-01 → 2024-06, 2024-07 → 2025-08,
 //      2025-09 → today. Never tune on all three at once.
 //
+// CLOCK: every session time is on the London clock (the research data runs on it): 07:00-15:45 London = 07:00-15:45 UTC
+// in winter and 06:00-14:45 UTC in summer. The news list and the firm's daily reset stay in UTC.
 // WHAT IT CANNOT DO: read the news calendar (set the blackout inputs by hand on news days), see 1-minute lows inside a
 // 15-minute bar before the fill (stops use 15-minute lows), or know your broker's live spread.
 strategy("Gold v2.2", shorttitle="Gold v2.2", overlay=true, pyramiding=0, max_labels_count=500,
@@ -56,7 +58,8 @@ bePlus    = input.float(0.10, "Breakeven offset after T1 (USD)", step=0.05, grou
 trailMult = input.float(3.0, "Chandelier trail × ATR on remainder", step=0.5, group=gEntry)
 maxHoldB  = input.int(0, "Max hold in 15-min bars (0 = off; 1 = close at the end of the fill bar = within 15 min; 2 = within 30 min). Research: a 15-min cap keeps ~1/5 of the edge", minval=0, group=gEntry)
 
-gTime    = "Session gates (L0), UTC"
+gTime    = "Session gates (L0), London time"
+sessTz    = input.string("Europe/London", "Session clock (the research data runs on London time = UTC in winter, UTC+1 in summer)", options=["Europe/London", "UTC"], group=gTime)
 sigStartH = input.int(7,  "Signal window start hour", minval=0, maxval=23, group=gTime)
 sigStartM = input.int(0,  "Signal window start minute", minval=0, maxval=59, group=gTime)
 sigEndH   = input.int(15, "Signal window end hour", minval=0, maxval=23, group=gTime)
@@ -136,7 +139,8 @@ biasLong  = not useBiasE or (not na(dSma) and dClose > dSma)
 biasShort = not useBiasE or (not na(dSma) and dClose < dSma)
 
 // ───────────────────────────── Time gates ─────────────────────────────
-mod      = hour(time, "UTC") * 60 + minute(time, "UTC")          // bar OPEN time, minutes of day
+mod      = hour(time, sessTz) * 60 + minute(time, sessTz)        // bar OPEN time, minutes of day, on the session clock
+tzTxt    = sessTz == "UTC" ? "UTC" : "London time"
 sigLo    = nyOnlyE ? 12 * 60 : sigStartH * 60 + sigStartM
 sigHi    = sigEndH * 60 + sigEndM
 cutMin   = cutH * 60 + cutM
@@ -593,7 +597,7 @@ if acctFlat
     orderTxt := "ACCOUNT GUARD"
 else if inPos
     statusTxt := t1Done ? "T1 HIT / TRAILING" : "IN TRADE"
-    whatToDo := t1Done ? "IN A TRADE. Half is closed. Keep the stop at " + str.tostring(stopNow, "#.##") + ". Close the rest at " + f_hhmm(flatMin + 15) + " UTC." : "IN A TRADE. Do nothing. Stop " + str.tostring(stopNow, "#.##") + ", take half at " + str.tostring(tgtNow, "#.##") + "."
+    whatToDo := t1Done ? "IN A TRADE. Half is closed. Keep the stop at " + str.tostring(stopNow, "#.##") + ". Close the rest at " + f_hhmm(flatMin + 15) + " " + tzTxt + "." : "IN A TRADE. Do nothing. Stop " + str.tostring(stopNow, "#.##") + ", take half at " + str.tostring(tgtNow, "#.##") + "."
     orderTxt := (isLongNow ? "BOUGHT at " : "SOLD at ") + str.tostring(entryNow, "#.##")
 else if pendSide != 0
     statusTxt := "PENDING ORDER"
@@ -604,7 +608,7 @@ else if acctHalt
 else if dayHalt or wkHalt
     whatToDo := "DO NOTHING. Daily or weekly loss limit reached."
 else if not inWindow
-    whatToDo := "DO NOTHING. Trading window closed (" + f_hhmm(sigLo) + "-" + f_hhmm(sigHi) + " UTC)."
+    whatToDo := "DO NOTHING. Trading window closed (" + f_hhmm(sigLo) + "-" + f_hhmm(sigHi) + " " + tzTxt + ")."
 stateCol = acctFlat ? color.new(color.red, 0) : inPos ? color.new(color.green, 0) : pendSide != 0 ? color.new(color.orange, 0) : acctHalt ? color.new(color.red, 0) : color.new(color.gray, 0)
 var box bxR = na
 var box bxG = na
@@ -631,7 +635,7 @@ f_row(r, k, v, c) =>
 if barstate.islast
     f_row(0, "DIRECTION TODAY", useBiasE ? (biasLong ? "ONLY BUY" : biasShort ? "ONLY SELL" : "none") : "BUY or SELL", useBiasE ? (biasLong ? color.green : color.red) : color.gray)
     f_row(1, "TREND (ADX)", str.tostring(adx, "#.#") + (armed ? "  STRONG" : "  weak") + (longDir ? "  up" : "  down"), armed ? color.green : color.gray)
-    f_row(2, "WINDOW", inWindow ? "OPEN (" + f_hhmm(sigLo) + "-" + f_hhmm(sigHi) + " UTC)" : "CLOSED", inWindow ? color.green : color.gray)
+    f_row(2, "WINDOW", inWindow ? "OPEN (" + f_hhmm(sigLo) + "-" + f_hhmm(sigHi) + " " + tzTxt + ")" : "CLOSED", inWindow ? color.green : color.gray)
     f_row(3, "STATUS", statusTxt, stateCol)
     f_row(4, "ENTRY / STOP / TARGET", pendSide != 0 or inPos ? str.tostring(entryNow, "#.##") + " / " + str.tostring(stopNow, "#.##") + " / " + str.tostring(tgtNow, "#.##") : "-", color.gray)
     f_row(5, "REWARD:RISK / LOTS", pendSide != 0 or inPos ? str.tostring(rrNow, "#.##") + " / " + str.tostring(lotsNow, "#.##") + " lot" : "-", color.gray)

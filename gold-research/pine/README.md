@@ -36,6 +36,7 @@
 
 - Stop placement uses 15-minute lows between first touch and fill, not 1-minute lows → stops slightly tighter in some trades.
 - Forced flat at 20:45 instead of 20:50 UTC.
+- Clock (corrected 2026-11-13): the research data runs on London local time, not UTC (PROJECT_STATE.md, working rules). Both scripts gate on the Europe/London clock by default through the `Session clock` input, so session times match the research all year. Every "UTC" session time in this README written before 2026-11-13 is London time. The news list and the firm's daily reset remain UTC.
 - Daily bars are TradingView's (exchange day) rather than the 23:00 UTC session day used in the research.
 - Fill prices are TradingView's (one price series, no bid/ask); commission input stands in for spread.
 - The script has not been compiled here; if the Pine editor reports an error, paste it back and it will be fixed.
