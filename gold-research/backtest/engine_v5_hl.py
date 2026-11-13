@@ -69,6 +69,7 @@ V5_CONFIG.update(dict(
     # ---- v5b improvement filters (results/PREREGISTRATION_v5b_hl_improve.md); all off in the six frozen readings
     hl_min_stop_d1atr=None,              # MS: no order for a side whose stop distance < k x D1ATR
     hl_trend=None,                       # T: "ema50" -> buy side only above EMA50(M15) at the order-step close, sell side only below
+    hl_side=None,                        # v8b (exploratory): None = both sides | "long" = buy orders only | "short" = sell orders only
     hl_ref=None,                         # v8: None | "h1" | "h4" -> buy side only while that timeframe's EMA-trend state (htf_refs.py) is up, sell side only while down
     hl_adx_max=None,                     # Q: no orders at an order step whose bar has ADX14(M15) above this
     hl_min_age_min=None,                 # A: a side needs a level at least this many minutes old
@@ -128,6 +129,9 @@ V8B = {
     "HL_C_W01_RH4": dict(_W01, hl_ref="h4"),
     "HL_C_W01_RD1": dict(_W01, hl_bias="sma200"),
     "HL_C_RH4ONLY": dict(_W01, hl_trend=None, hl_ref="h4"),
+    # v8b addendum (exploratory, post-hoc): one side only
+    "HL_C_W01_RH4_LONG":  dict(_W01, hl_ref="h4", hl_side="long"),
+    "HL_C_W01_RH4_SHORT": dict(_W01, hl_ref="h4", hl_side="short"),
 }
 VARIANTS.update(V8B)
 OOS = ("2024-07-01", "2026-11-01")       # pooled validation + final test, by signal_bar_open (perturbation report)
@@ -306,6 +310,8 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir):
             if np.isnan(pdy.sma200): wait(close_ts, "WAIT_bias_undefined"); return None
             allow_long, allow_short = bool(pdy.close > pdy.sma200), bool(pdy.close < pdy.sma200)
             bias = "long" if allow_long else ("short" if allow_short else "flat")
+        if cfg.get("hl_side") == "long": allow_short = False
+        elif cfg.get("hl_side") == "short": allow_long = False
         want_buy, want_sell = H["live"] and allow_long, L["live"] and allow_short
         if not (want_buy or want_sell):
             wait(close_ts, "WAIT_no_live_level" if not (H["live"] or L["live"]) else "WAIT_live_level_against_bias"); return None

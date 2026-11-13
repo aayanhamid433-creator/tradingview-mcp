@@ -104,7 +104,7 @@ model and 0.55 to 0.65 USD at the spread FOREX.com showed off-peak on 2026-11-12
 ## 7. The Pine script (pine/gold_quick.pine, built 2026-11-13 because Aayan asked for it)
 
 Purpose: let him see the idea on his own chart. It is not a recommendation. The banner on the chart states the tested
-result for the selected setting ("SIX-YEAR TEST OF THIS SETTING: LOSES 0.08 R PER TRADE ..."), the default risk is
+result for the selected setting ("SIX-YEAR TEST OF THIS SETTING: LOSES 0.08 R PER TRADE (LAST 28 MONTHS), MORE BEFORE ..."), the default risk is
 0.10 %, and the header says demo and Strategy Tester only. It runs on a 1-minute or a 5-minute chart, with the three
 signal types of this report, exits after 5 / 10 / 15 / 30 minutes, the news blackout and the account guard.
 
@@ -113,6 +113,13 @@ with pandas on chart bars built from the M1 data, give exactly the engine's sign
 years: 59,940 (trend breakout, 1-minute), 9,959 / 4,744 / 5,304 (fast move, with trend, 15-minute window), 15,591
 (pullback, 5-minute), and for the 5-minute forms 23,092 / 3,827. Not checked: the Pine code has not been compiled here
 (no TradingView in this environment), and order handling was reviewed by reading only.
+
+Agent review of the script (2026-11-13, two of three lenses finished before the usage limit): no compile error and no
+runtime error found by reading (nothing can be compiled here); a bar-by-bar emulation of the script's order logic
+reproduced the engine's entries (9,006 of 9,006 for the default on the 1-minute chart, 8,995 of 8,998 on the 5-minute
+chart) and the exit timing. One text finding, confirmed by a second agent and fixed: the banner gave the last-28-months
+loss as if it were the six-year figure (the six-year mean of the default is -0.16 R per trade, not -0.08 R). With the
+script's own cost model (0.40 per round trip) the default loses about 0.01 R more than the engine figure.
 
 Known differences from the engine: costs are a 0.20 USD commission per ounce per fill (0.40 per round trip) instead of
 spread 0.25 plus slippage 0.05 per fill; a short's stop is checked on the chart's bid high without the spread; stops are

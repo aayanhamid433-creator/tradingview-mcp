@@ -33,4 +33,13 @@ HL_C_W01_RH4_stress    | dev n= 701 R=-0.005 PF=0.99 DD= -34.3 win=44% | val n= 
 HL_C_W01               | dev n=1017 R=+0.006 PF=1.01 DD= -26.7 win=44% | val n= 336 R=+0.136 PF=1.35 DD=  -5.4 win=50% | fin n= 330 R=+0.147 PF=1.39 DD=  -9.3 win=51% || OOS R=+0.141 CI[+0.076,+0.206] tot=+94.1 exTop5=+0.131 | 1.09/day, days traded 94%, win days 53%, worst day -3.1R, hold 490m
 ```
 
+## v8b (exploratory, post-hoc): one side only
+
+```
+HL_C_W01_RH4_LONG      | dev n= 379 R=+0.104 PF=1.24 DD= -17.1 win=49% | val n= 151 R=+0.189 PF=1.49 DD=  -6.9 win=53% | fin n= 124 R=+0.245 PF=1.75 DD=  -4.9 win=57% || OOS R=+0.214 CI[+0.112,+0.318] tot=+59.0 exTop5=+0.191 | 0.45/day, days traded 42%, win days 56%, worst day -2.0R, hold 463m
+HL_C_W01_RH4_LONG_stress | dev n= 394 R=+0.062 PF=1.13 DD= -18.5 win=47% | val n= 153 R=+0.171 PF=1.43 DD=  -7.4 win=52% | fin n= 125 R=+0.232 PF=1.69 DD=  -4.9 win=56% || OOS R=+0.199 CI[+0.096,+0.299] tot=+55.2 exTop5=+0.175 | 0.46/day, days traded 42%, win days 55%, worst day -2.1R, hold 464m
+HL_C_W01_RH4_SHORT     | dev n= 306 R=-0.049 PF=0.90 DD= -26.6 win=41% | val n=  61 R=-0.017 PF=0.96 DD=  -3.9 win=46% | fin n=  96 R=+0.238 PF=1.64 DD=  -4.0 win=55% || OOS R=+0.139 CI[+0.003,+0.276] tot=+21.9 exTop5=+0.094 | 0.26/day, days traded 24%, win days 54%, worst day -2.0R, hold 440m
+HL_C_W01_RH4_stress    | dev n= 701 R=-0.005 PF=0.99 DD= -34.3 win=44% | val n= 213 R=+0.115 PF=1.28 DD=  -6.7 win=50% | fin n= 220 R=+0.239 PF=1.68 DD=  -5.4 win=56% || OOS R=+0.178 CI[+0.094,+0.260] tot=+77.1 exTop5=+0.163 | 0.71/day, days traded 66%, win days 55%, worst day -2.1R, hold 461m
+```
+
 See VALIDATION_REPORT_v8.md.

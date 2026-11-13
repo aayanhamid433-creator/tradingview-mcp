@@ -3,8 +3,8 @@
 Status: **the idea helps in one place and nowhere else.** With a quick exit it loses with every reference. With a
 5-minute entry held for hours it is about zero. On the 15-minute breakout, the 4-hour direction on top gives fewer and
 better trades: the best version of the breakout so far (HL_C_W01_RH4). It still fails the strict rule on the development
-period (PF 1.08, drawdown -24.6 R). Engine and references reproduced by an independent replay (identical trade lists);
-adversarial agent verification is noted in §7.
+period (PF 1.08, drawdown -24.6 R). Engine and references reproduced by an independent replay and by an independently written audit
+(§7); placebo tests in §9; account simulation in §10, which lowers the recommended risk to 0.15 %.
 
 ## 1. Request and rules
 
@@ -117,12 +117,8 @@ trades (yes); ex-top-5 positive (yes, +0.173); perturbations positive (24 of 24)
 loses 12.8 R. So it is the best breakout version and still a regime-dependent one.
 
 Decision: the Pine script's default becomes the 4-hour reference (input "BIGGER TIMEFRAME for the direction": Off /
-1 hour / 4 hours). Risk stays at 0.25 %.
-
-Money at 0.25 % risk on 50,000 USD (125 USD per R): the last 28 months made about 2.9 R = 360 USD a month with a worst
-drawdown of about 790 USD. A market like 2021 to 2023 gave a drawdown of 24.6 R = about 3,100 USD, which is the size of
-the firm's trailing limit (3,000 USD); the account guard stops new trades 500 USD before the floor. Surviving a repeat
-of that period with room to spare needs about 0.10 % risk.
+1 hour / 4 hours). Risk default lowered from 0.25 % to 0.15 % after the account simulation (§10): at 0.25 % the 2023
+drawdown would have brought the account within 500 USD of the firm's trailing floor, where the guard stops trading.
 
 ## 6. Caveats
 
@@ -137,12 +133,90 @@ anchor does not matter).
 
 ## 7. Verification log
 
-- Independent replay: identical (see §4).
-- Agent verification (independent re-implementation from the frozen rules, overfitting review, Pine review): see the
-  entries appended below when the runs finish.
+Independent audit. Written by a verification agent that imported nothing from the project; the agent run was cut off by
+the usage limit, and the main session ran its scripts afterwards (scratchpad v8verify/lookahead and v8verify/artefact).
+- 4-hour bars rebuilt from the M1 data (9,007 bars), EMA50 and state as frozen. All 1,116 trades of HL_C_W01_RH4 agree
+  with that state at the order step of the fill and at the step where the order parameters were computed. Read with the
+  still-forming 4-hour bar instead, 18 trades would disagree, so the engine does not look ahead; the used bar ended at
+  least 16 minutes before every order step.
+- The engine driven by the agent's own state arrays gives the identical trade list; the per-minute state arrays equal
+  htf_refs.py for H4 and H1.
+- The 1,683 trades of HL_C_W01 = 767 removed directly (state disagrees) + 898 kept unchanged + 18 displaced by knock-on;
+  the 1,116 of HL_C_W01_RH4 = those 898 + 218 new trades that the removed ones had been blocking; no contradiction.
+- Every figure of §3.3 recomputed from the trade lists agrees (per-period mean R, PF, drawdown, intervals, R by year,
+  months positive, the tester window, trades per day 0.714 on 604 held-out weekdays).
+
+Pine review (agent): see the entry at the end of this section.
 
 ## 8. Files
 
 backtest/htf_refs.py, backtest/engine_v8_htf.py (families Q and N), backtest/engine_v5_hl.py (hl_ref, family B),
-backtest/verify_v5b_replay.py, results/PREREGISTRATION_v8_htf.md, results/V8H_*/ (and *_stress/), results/V5_HL_C_W01_RH1,
+backtest/verify_v5b_replay.py, backtest/analyze_v8_placebo.py, backtest/analyze_v8_account.py,
+results/PREREGISTRATION_v8_htf.md (with the v8b addendum), results/V8H_*/ (and *_stress/), results/V5_HL_C_W01_RH4_LONG, _SHORT, results/V5_HL_C_W01_RH1,
 _RH4, _RD1, V5_HL_C_RH4ONLY (and *_stress/), results/summary_v8.md, pine/gold_hl_breakout.pine.
+
+## 9. Is the improvement real? Placebo tests (HL_C_W01 trades split by a state at their own order step)
+
+| test | six years | development | held-out |
+|---|---|---|---|
+| real 4-hour state: kept minus removed | +0.111 R (t 2.2) | +0.079 (t 1.2) | +0.162 (t 2.1) |
+| random subsets of the same size at least as good | 1.3 % | 11.6 % | 2.0 % |
+| labels shifted along the trade sequence at least as good | 1.7 % | 11.8 % | 1.3 % |
+| bootstrap by blocks of 5 days, 90 % interval | [+0.029, +0.194] | [-0.035, +0.188] | [+0.021, +0.277] |
+| state 1 / 2 trading days old | +0.099 / +0.134 | +0.079 / +0.162 | +0.131 / +0.093 |
+| state 5 / 10 trading days old | +0.061 / +0.003 | -0.005 / -0.037 | +0.149 / +0.041 |
+| state 20 / 40 / 60 trading days old | +0.021 / -0.046 / +0.006 | +0.044 / -0.048 / -0.027 | -0.036 / -0.059 / +0.040 |
+| previous day's direction as the filter | +0.012 | +0.002 | +0.048 |
+
+Reading. The effect is unlikely to be chance on the whole sample (about 1 in 60) and is not established on the
+development period alone. A state that is one or two days old works as well as the current one and a state that is two
+weeks old does nothing: the information is the trend of the last several days, not gold's long-run rise and not
+anything specific to "4 hours" (which agrees with the timeframe table in §4). Kept minus removed is positive in each of
+the six years (+0.15, +0.07, +0.03, +0.08, +0.19, +0.16).
+
+By side, six years: buys with the state up +0.183 R (540 trades) against buys otherwise -0.007 R (348), t 2.7
+(development alone t 2.3). Sells with the state down +0.005 R (376) against sells otherwise +0.003 R (419): no
+difference. Keeping only the buys splits the list as well as the 4-hour state does (+0.108 R against +0.004 R).
+
+Asian hours. 53 % of the held-out trades are entered between 01:00 and 07:00 London time and they make more per trade
+(+0.238 R) than the later ones (+0.132 R). With a spread of 0.60 instead of 0.25 in those hours the held-out result is
++0.178 R (0.80: +0.173 R) and development +0.015 R; stops are 20 to 45 USD wide now, so the spread matters little.
+
+## 10. Would the 50,000 USD account survive? (HL_C_W01_RH4, whole ounces, guard on)
+
+Rules simulated: daily loss 3 % of the day's starting equity with floating loss included, trailing floor 6 % below peak
+equity (floating peaks raise it), and the script's guard (no new trades after a 2 % daily loss or within 500 USD of the
+floor; once there, the account is finished in practice because the floor never moves down).
+
+| risk per trade | fresh 50k on 1 January: 2021 / 22 / 23 / 24 / 25 / 26 (USD) | 12-month runs from each of 57 month starts that were stopped | median / worst 12-month result | closest to the floor |
+|---|---|---|---|---|
+| 0.25 % | +993 / +2,578 / **-2,101 stopped 2023-08-25** / +2,047 / +5,105 / +3,285 | 8 (all starting before mid-2023) | +2,072 / -2,455 | 443 USD |
+| 0.20 % | +739 / +2,016 / -1,229 / +1,615 / +4,116 / +1,944 | 0 | +1,622 / -1,270 | 662 USD |
+| 0.15 % | +531 / +1,505 / -868 / +1,080 / +3,002 / +1,460 | 0 | +1,188 / -921 | 1,288 USD |
+| 0.10 % | +396 / +962 / -547 / +695 / +2,084 / +641 | 0 | +767 / -629 | 1,898 USD |
+
+The daily limit is never close (worst day 1.2 % at 0.25 % risk); no trade's floating loss reaches 700 USD; the largest
+single loss is 1.87 R (ten trades lose more than 1.2 R through gaps). Without the 4-hour filter (HL_C_W01) the account
+is stopped in 13 of the 57 runs at 0.25 % and in 4 at 0.20 %.
+Block bootstrap of one year (185 trades, blocks of 20): with development-type trades the chance of reaching the guard's
+stop is 10 % at 0.25 %, 3 % at 0.20 %, 0.3 % at 0.15 %, and the median year makes +850 / +740 / +590 USD; with
+held-out-type trades the chance is zero and the median year makes +4,760 / +3,700 / +2,780 USD.
+Position size is lumpy: with a typical 2026 stop of 44 USD, 0.15 % of 50,000 is one ounce (0.01 lot) and 0.20 % or
+0.25 % is two.
+
+Conclusion: 0.15 % is the highest risk that came through every start with clear room; 0.20 % survived every start but
+came within 662 USD of the floor in 2023; 0.25 % would have ended the account in August 2023.
+
+## 11. One side only (v8b addendum: exploratory, found by slicing every period)
+
+| variant | trades per day | development (drawdown) | validation | final test | held-out mean R, total | R by year 2021 / 22 / 23 / 24 / 25 / 26 |
+|---|---|---|---|---|---|---|
+| HL_C_W01_RH4 (both sides) | 0.71 | +0.036 / 1.08 (-24.6 R) | +0.131 / 1.33 | +0.242 / 1.69 | +0.188, +81.0 R | +8.2 / +21.1 / -12.8 / +17.2 / +42.5 / +29.2 |
+| HL_C_W01_RH4_LONG (buys only) | 0.45 | +0.104 / 1.24 (-17.1 R) | +0.189 / 1.49 | +0.245 / 1.75 | +0.214, +59.0 R | -0.2 / +21.1 / -2.2 / +31.2 / +42.9 / +5.6 |
+| HL_C_W01_RH4_SHORT (sells only) | 0.26 | -0.049 / 0.90 (-26.6 R) | -0.017 / 0.96 | +0.238 / 1.64 | +0.139, +21.9 R | +8.4 / 0.0 / -10.5 / -14.2 / -0.4 / +23.7 |
+
+Gold by year: -4 %, 0 %, +13 %, +27 %, +65 %, -10 % (2026 to October). The sells earned in the falling years 2021 and
+2026 and lost in the rising years 2023 and 2024; in 2026 they made 23.7 of the 29.2 R. Buys only would have had the
+smaller drawdown and would have survived every start at 0.25 % risk, but it would also have made little in 2026, and
+gold is below its 200-day average now. Not adopted: the two-sided rule is the frozen one and it is the one that adapts
+when gold falls. Both sides stay on; the lower risk handles the drawdown instead.
