@@ -99,6 +99,19 @@ IMPROVE = {
     "HL_IMP10_MS_T":   dict(_B, hl_pivot_n=10, hl_trend="ema50"),
 }
 VARIANTS.update(IMPROVE)
+# ---- v5c: order hours and target on the improved base (frozen 2026-11-13 in the v5c addendum of PREREGISTRATION_v5b_hl_improve.md)
+_C = dict(_B, family="HL_C", hl_pivot_n=10, hl_trend="ema50")
+V5C = {
+    "HL_C_W19":     dict(_C, hl_order_end="19:00"),
+    "HL_C_W01":     dict(_C, hl_order_start="01:00"),
+    "HL_C_W0119":   dict(_C, hl_order_start="01:00", hl_order_end="19:00"),
+    "HL_C_T20":     dict(_C, hl_target_mult=2.0),
+    "HL_C_T30":     dict(_C, hl_target_mult=3.0),
+    "HL_C_EOD":     dict(_C, hl_exit_mode="eod"),
+    "HL_C_W19_T20": dict(_C, hl_order_end="19:00", hl_target_mult=2.0),
+    "HL_C_E5":      dict(_C, hl_order_end="19:00", hl_max_entries=5),
+}
+VARIANTS.update(V5C)
 OOS = ("2024-07-01", "2026-11-01")       # pooled validation + final test, by signal_bar_open (perturbation report)
 
 hhmm = E.hhmm

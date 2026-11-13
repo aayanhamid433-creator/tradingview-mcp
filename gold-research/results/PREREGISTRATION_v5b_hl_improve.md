@@ -65,3 +65,28 @@ not tradable at 0.5 % risk". Anything else is "no improvement".
 
 Multiple-testing note: with the six v5 readings these are 14 looks at the breakout idea, on data that had been looked at
 about 60 times before. A single passing variant would need the forward test before it means anything.
+
+---
+
+# v5c addendum — more trades and more profit from the improved breakout (frozen 2026-11-13, before any v5c run)
+
+Request (Aayan, after HL_IMP10_MS_T): "the trades are lower and the profit isn't that much". His proposal, entries on M5
+or M1, was tested separately (PREREGISTRATION_v6_mtf.md) and loses in every period. These variants test the two other
+levers on the improved base HL_IMP10_MS_T (pivot 10, minimum stop 0.10, EMA50 trend, target 1.5 R, orders 07:00-16:00):
+longer order hours and a wider or absent target. Its held-out results are known; these are exploratory.
+
+| id | change from HL_IMP10_MS_T |
+|---|---|
+| HL_C_W19 | orders 07:00-19:00 |
+| HL_C_W01 | orders 01:00-16:00 |
+| HL_C_W0119 | orders 01:00-19:00 |
+| HL_C_T20 | target 2.0 R |
+| HL_C_T30 | target 3.0 R |
+| HL_C_EOD | no target, exit 20:50 |
+| HL_C_W19_T20 | orders 07:00-19:00 and target 2.0 R |
+| HL_C_E5 | at most 5 entries per session day (base 3), orders 07:00-19:00 |
+
+Pre-stated criterion: a change counts as an improvement only if, against HL_IMP10_MS_T, it raises the total R in BOTH the
+development period and the pooled held-out period without lowering the held-out profit factor below 1.25 or deepening
+the held-out drawdown beyond 12 R. Anything else is "no improvement". Nothing here can pass the strict rule, because the
+base itself is negative in development.
