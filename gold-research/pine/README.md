@@ -136,4 +136,5 @@ Input "BIGGER TIMEFRAME for the direction": Off / 1 hour / **4 hours (default)**
 closed bar of that timeframe is above its rising EMA50, sell orders only while it is below its falling EMA50; the
 15-minute EMA50 filter still applies. Research id HL_C_W01_RH4 (VALIDATION_REPORT_v8.md): about a third fewer trades
 (0.7 a day), +0.19 R per trade instead of +0.14 R, held-out drawdown -6 R instead of -9 R, total +81 R instead of
-+94 R over the last 28 months. "Off" reproduces HL_C_W01. The monitor row "BIGGER TREND" shows the state.
++94 R over the last 28 months. Risk default 0.15 % since the account simulation (VALIDATION_REPORT_v8.md §10): at
+0.25 % the 2023 drawdown would have stopped a 50k account, at 0.15 % it survived every start month. "Off" reproduces HL_C_W01. The monitor row "BIGGER TREND" shows the state.

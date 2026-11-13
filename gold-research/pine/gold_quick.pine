@@ -346,14 +346,14 @@ if stdCore and (h5 or h15)
         else if stdBurst and burstW == 15 and not burstTr and h15
             testR := "0.14"
     else
-        if isBrk and brkMin == 5
+        if isBrk and kBars == 1
             testR := h5 ? "0.09" : "0.08"
         else if stdBurst and burstW == 5 and not burstTr
             testR := "0.10"
         else if isPb and pbLen == 20
             testR := h5 ? "0.08" : "0.07"
-string testTxt   = testR != "" ? "SIX-YEAR TEST OF THIS SETTING: LOSES " + testR + " R PER TRADE, IN EVERY PERIOD. DEMO ONLY." : "THIS EXACT SETTING WAS NOT TESTED. ALL 13 TESTED VERSIONS OF THE IDEA LOST MONEY. DEMO ONLY."
-string testShort = testR != "" ? "LOSES " + testR + " R per trade" : "not tested; all 13 tested versions lost"
+string testTxt   = testR != "" ? "SIX-YEAR TEST OF THIS SETTING: LOSES " + testR + " R PER TRADE (LAST 28 MONTHS), MORE BEFORE. DEMO ONLY." : "THIS EXACT SETTING WAS NOT TESTED. ALL 13 TESTED VERSIONS OF THE IDEA LOST MONEY. DEMO ONLY."
+string testShort = testR != "" ? "LOSES " + testR + " R per trade (last 28 months)" : "not tested; all 13 tested versions lost"
 
 // ───────────────────────────── Visuals ─────────────────────────────
 // Thick stepped line = the 15-minute trend line (EMA50 of the last closed 15-minute bar): green = up, red = down.
@@ -423,7 +423,7 @@ f_row(r, k, v, c) =>
     table.cell(mon, 0, r, k, text_color=color.white, bgcolor=color.new(color.black, 0), text_size=size.large)
     table.cell(mon, 1, r, v, text_color=color.white, bgcolor=color.new(c, 20), text_size=size.large)
 if barstate.islast
-    sigTxt = isBrk ? "trend + break of the last " + str.tostring(brkMin) + " min" : isBurst ? "fast move: " + str.tostring(burstK, "#.##") + " x normal in " + str.tostring(burstW) + " min" + (burstTr ? ", with the trend" : "") : "trend + pullback to the EMA" + str.tostring(pbLen)
+    sigTxt = isBrk ? "trend + break of the last " + str.tostring(kBars * tfMin) + " min" : isBurst ? "fast move: " + str.tostring(burstK, "#.##") + " x normal in " + str.tostring(burstW) + " min" + (burstTr ? ", with the trend" : "") : "trend + pullback to the EMA" + str.tostring(pbLen)
     f_row(0, "15-MIN TREND", trendUp ? "UP" : trendDn ? "DOWN" : "no clear trend", trendUp ? color.green : trendDn ? color.red : color.gray)
     f_row(1, "SIGNAL", sigTxt, color.gray)
     f_row(2, "STATUS", statusTxt, stateCol)

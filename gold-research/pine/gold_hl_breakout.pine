@@ -9,10 +9,10 @@
 // Six-year test, 1 R = the risk of one trade:  2021 +8 R | 2022 +21 R | 2023 -13 R | 2024 +17 R | 2025 +43 R | 2026 +29 R.
 // Last 28 months: 431 trades, PF 1.50, +0.19 R per trade, worst drawdown -6 R, 0.7 trades a day (2 days in 3), 86 % of
 // months positive. 2021 to mid-2024 was close to break-even (PF 1.08, drawdown -25 R; zero with a wider spread), so it
-// does not pass the project's strict rule; risk default is 0.25 % for that reason (VALIDATION_REPORT_v8.md).
+// does not pass the strict rule. RISK default 0.15 %: on a simulated 50k account that survived every start month of the six years; at 0.25 % the 2023 drawdown stops the account (VALIDATION_REPORT_v8.md section 10).
 // With the bigger timeframe Off (research id HL_C_W01) it trades more (1.1 a day) and made more in the last 28 months
 // (+94 R against +81 R), but less per trade (+0.14 R), with a deeper drawdown (-9 R) and losing years 2021 and 2023.
-// Over the six years, trades against the 4-hour trend made nothing (+0.00 R each); trades with it made +0.11 R each.
+// Over the six years, trades against the 4-hour trend made nothing (+0.00 R each); trades with it made +0.11 R each. Buys earned most of it (gold mostly rose); sells earned in the falling years 2021 and 2026.
 // With orders from 07:00 instead (input "Orders from: hour" = 7) it trades less. Entries on the 5-minute or 1-minute
 // chart lose in every period (VALIDATION_REPORT_v5.md section 11); they are not in this script.
 // QUICK IN, QUICK OUT was tested on 2026-11-13 (VALIDATION_REPORT_v7.md and v8): sixteen fast rules with 5- and 15-minute
@@ -36,7 +36,7 @@
 //      0.3 x ATR14 of the 15-minute chart.
 //   4. EXIT at a target of 1.5 x the risk, or (EXIT input) no target and a stop that trails 3 x ATR behind price.
 //      Everything is closed at 20:45 London time. At most 3 entries a day (1 with yesterday's levels).
-//   5. SIZE = 0.25 % of equity / stop distance, in ounces (100 oz = 1.00 lot), capped at 50 % margin use and 2 lots.
+//   5. SIZE = 0.15 % of equity / stop distance, in ounces (100 oz = 1.00 lot), capped at 50 % margin use and 2 lots.
 //
 // SETUP: Strategy Tester > Settings > Properties: capital 50000, commission 0.15 per contract, slippage 5 ticks.
 // Style tab: untick "Trades on chart". Create Alert > this script > "Any alert() function call" for phone messages.
@@ -80,7 +80,7 @@ newsList = input.string("2026-11-13 13:30,2026-11-20 13:30,2026-11-25 13:30,2026
      "Red-folder events, UTC, comma separated (YYYY-MM-DD HH:MM). VERIFY on Forex Factory each week.", group=gTime)
 
 gRisk    = "4. RISK"
-riskPct  = input.float(0.25, "Risk per trade, % of equity (0.25 because the tested drawdown is about 10 R)", minval=0.05, step=0.05, group=gRisk)
+riskPct  = input.float(0.15, "Risk per trade, % of equity (0.15 = the simulated 50k account survived every start month of the six-year test; at 0.25 the 2023 drawdown would have stopped it)", minval=0.05, step=0.05, group=gRisk)
 maxDayIn = input.int(3, "Max entries per day (with yesterday's levels: always 1)", minval=1, group=gRisk)
 qtyStep  = input.float(1.0, "Quantity step (oz). 1 oz = 0.01 lot", minval=0.01, step=1, group=gRisk)
 
