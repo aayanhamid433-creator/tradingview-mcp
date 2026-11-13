@@ -37,6 +37,10 @@ V2_CONFIG.update(dict(
     partial_exit=True, partial_frac=0.5, be_offset=0.10,
     trail_mult=3.0,
     trigger_a=True, trigger_b=False,
+    confirm_close=False,               # touch bar must close on the trend side of the EMA
+    daily_fallback=None,               # Trigger C "one trade every day": None | "bias" (daily SMA200 side) | "di" (+DI vs -DI on M15)
+    daily_fallback_time="13:30",       # if the session day has had no entry by this bar OPEN (UTC), enter at market on the next minute
+    fallback_stop_atr=1.5,             # stop = k x ATR14(M15); T1 = min_rr x that distance; partial/trail/time exit as usual
     trig_b_start="07:00", trig_b_end="10:45", trig_b_adx=20.0, trig_b_valid_bars=2, trig_b_stop_cap_atr=2.0,
 ))
 
@@ -51,6 +55,14 @@ VARIANTS = {
     "V2_G_nostops":    dict(daily_stop_losses=None, daily_stop_R=None, weekly_stop_R=None),
     "V2_H_coststress": dict(spread=0.50, slippage=0.15),
     "V2_I_v1window":   dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00"),
+    # v2.2 candidates (added 2026-11-12; fourth look at the same data, see VALIDATION_REPORT_v2.md caveat)
+    "V2_J_ny_only":    dict(signal_start="12:00", signal_end="15:45", pending_cutoff="16:00"),
+    "V2_K_confirm":    dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True),
+    "V2_L_ny_confirm": dict(signal_start="12:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True),
+    # "one trade every day" candidates (added 2026-11-12 at Aayan's request; pre-registered before running, fifth look at the data)
+    "V2_M_daily_bias":      dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True, daily_fallback="bias"),
+    "V2_N_daily_di_nobias": dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True, daily_fallback="di", bias_mode=None),
+    "V2_O_daily_bias_0800": dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", confirm_close=True, daily_fallback="bias", daily_fallback_time="08:00"),
     # regression check: must reproduce V0_base exactly
     "V2_v1compat":     dict(signal_start="07:00", signal_end="15:45", pending_cutoff="16:00", min_rr=1.0, bias_mode=None,
                             news_gate=None, daily_stop_losses=None, daily_stop_R=None, weekly_stop_R=None, monday_gap_gate=False,
@@ -110,6 +122,7 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
     sig_lo, sig_hi = hhmm(cfg["signal_start"]), hhmm(cfg["signal_end"])
     cutoff_min, texit_min = hhmm(cfg["pending_cutoff"]), hhmm(cfg["time_exit"])
     tb_lo, tb_hi = hhmm(cfg["trig_b_start"]), hhmm(cfg["trig_b_end"])
+    fb_min = hhmm(cfg["daily_fallback_time"])
     spread, slip, comm = cfg["spread"], cfg["slippage"], cfg["commission_rt"]
     m1_t = m1.index.values; m1_o, m1_h, m1_l, m1_c = (m1[k].values for k in ("open", "high", "low", "close"))
     m1_mod = (m1.index.hour * 60 + m1.index.minute).values
@@ -257,7 +270,8 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
                 elif i >= pending["last_touch_idx"] + cfg["expiry_bars"]: log_skip(pending["first_idx"], side, "EXPIRED_unfilled", trig="A"); pending = None
                 else:
                     pending["seq_low"] = min(pending["seq_low"], lo[i]); pending["seq_high"] = max(pending["seq_high"], hi[i])
-                if pending is not None and cfg["rearm"] and armed[i] and touch[i] and ((side == "long") == bool(long_dir[i])) and in_window:
+                conf_ok = (not cfg["confirm_close"]) or (cl[i] >= ema[i] if side == "long" else cl[i] <= ema[i])
+                if pending is not None and cfg["rearm"] and armed[i] and touch[i] and ((side == "long") == bool(long_dir[i])) and in_window and conf_ok:
                     if side == "long":
                         pending["level"] = hi[i] + cfg["entry_offset"]; pending["seq_low"] = min(pending["seq_low"], lo[i])
                         stop_est = pending["seq_low"] - pending["buffer"]; rr = (pending["target"] - pending["level"]) / (pending["level"] - stop_est)
@@ -287,6 +301,8 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
         # ---- Trigger A
         if cfg["trigger_a"] and armed[i] and touch[i]:
             side = "long" if long_dir[i] else "short"
+            if cfg["confirm_close"] and ((side == "long" and cl[i] < ema[i]) or (side == "short" and cl[i] > ema[i])):
+                log_skip(i, side, "WAIT_no_close_confirmation"); continue
             if allowed is None: log_skip(i, side, "WAIT_bias_undefined"); continue
             if allowed != "both" and allowed != side: log_skip(i, side, "WAIT_bias_direction", bias=allowed); continue
             if cfg["news_gate"] and in_news(close_ts): log_skip(i, side, "WAIT_news_window"); continue
@@ -325,6 +341,27 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
             pending = dict(trig="B", side=side, level=level, target=target, buffer=buffer, first_idx=i, last_touch_idx=i, last_touch_open=t15[i],
                            seq_low=lo[i], seq_high=hi[i], signal_bar_open=t15[i], adx=adx[i], atr=atr[i], ema=ema[i], rr_at_placement=rr, rearms=0,
                            session="London" if mod_i < 12 * 60 else "NewYork", size_mult=mult, bias=allowed, fixed_stop=stop)
+        # ---- Trigger C ("one trade every day"): no entry yet today by the fallback bar -> market order next minute
+        if cfg["daily_fallback"] and mod_i == fb_min and day_state["entries"] == 0:
+            if cfg["daily_fallback"] == "bias":
+                if allowed is None: log_skip(i, "none", "WAIT_bias_undefined", trig="C"); continue
+                if allowed == "both": side = "long" if long_dir[i] else "short"
+                else: side = allowed
+            else:
+                side = "long" if long_dir[i] else "short"
+                if allowed is None: log_skip(i, side, "WAIT_bias_undefined", trig="C"); continue
+                if allowed != "both" and allowed != side: log_skip(i, side, "WAIT_bias_direction", bias=allowed, trig="C"); continue
+            if cfg["news_gate"] and in_news(close_ts): log_skip(i, side, "WAIT_news_window", trig="C"); continue
+            dist = cfg["fallback_stop_atr"] * atr[i]
+            if side == "long":
+                level = -np.inf; stop = cl[i] - dist; target = cl[i] + cfg["min_rr"] * dist
+            else:
+                level = np.inf; stop = cl[i] + dist; target = cl[i] - cfg["min_rr"] * dist
+            if cfg["stop_sanity_d1atr"] is not None and not np.isnan(d1atr) and dist > cfg["stop_sanity_d1atr"] * d1atr:
+                log_skip(i, side, "WAIT_stop_too_wide", trig="C"); continue
+            pending = dict(trig="C", side=side, level=level, target=target, buffer=buffer, first_idx=i, last_touch_idx=i, last_touch_open=t15[i],
+                           seq_low=lo[i], seq_high=hi[i], signal_bar_open=t15[i], adx=adx[i], atr=atr[i], ema=ema[i], rr_at_placement=cfg["min_rr"], rearms=0,
+                           session="London" if mod_i < 12 * 60 else "NewYork", size_mult=mult, bias=allowed, fixed_stop=stop)
     tr = pd.DataFrame(trades)
     if len(tr):
         tr["hold_minutes"] = (pd.to_datetime(tr.exit_time) - pd.to_datetime(tr.entry_time)).dt.total_seconds() / 60
@@ -337,8 +374,9 @@ def run(cfg: dict, m1: pd.DataFrame, out_dir: pathlib.Path):
     return tr, pd.DataFrame(skips), meta
 
 def open_pos(p, t, fill, stop):
+    level = fill if p["trig"] == "C" else p["level"]   # market order: planned risk is measured from the fill
     return dict(trig=p["trig"], side=p["side"], signal_bar_open=p["signal_bar_open"], last_touch_open=p["last_touch_open"], session=p["session"],
-                bias=p["bias"], size_mult=p["size_mult"], level=p["level"], target=p["target"], entry_time=t, entry_price=fill,
+                bias=p["bias"], size_mult=p["size_mult"], level=level, target=p["target"], entry_time=t, entry_price=fill,
                 stop=stop, initial_stop=stop, be_stop=None, t1_filled=False, t1_price=np.nan, t1_time=pd.NaT, hh=fill, ll=fill,
                 adx_at_signal=p["adx"], atr_at_signal=p["atr"], ema_at_signal=p["ema"], rr_at_placement=p["rr_at_placement"], rearms=p["rearms"], ambiguous=False)
 

@@ -1,0 +1,59 @@
+{
+  "config": {
+    "version": "v4.0-rsi2_m15",
+    "adx_len": 14,
+    "ema_len": 20,
+    "atr_len": 14,
+    "signal_start": "07:00",
+    "signal_end": "15:45",
+    "time_exit": "20:50",
+    "spread": 0.25,
+    "slippage": 0.05,
+    "commission_rt": 0.0,
+    "ambiguity": "stop_first",
+    "warmup_bars": 200,
+    "family": "RSI2",
+    "rsi_len": 2,
+    "rsi_x": 5.0,
+    "stop_atr": 1.5,
+    "target_atr": 1.0,
+    "max_hold_minutes": 60,
+    "blackout_start": "13:25",
+    "blackout_end": "13:35",
+    "one_trade_per_day": true,
+    "variant": "V4_RSI2_BASE",
+    "variant_id": "RSI2_BASE"
+  },
+  "n_trades": 1468,
+  "n_skips": 15,
+  "counters": {
+    "ambiguous_stop_target": 0,
+    "both_sides_same_minute": 0,
+    "same_minute_stop": 2,
+    "gap_fill_skipped": 1,
+    "news_blackout_skipped": 14,
+    "session_ended_cancelled": 0,
+    "signals_long": 732,
+    "signals_short": 751,
+    "signal_bars_suppressed_day_done": 6081
+  },
+  "m15_bars": 134741,
+  "m1_bars": 2020438,
+  "n_session_days": 1526,
+  "trades_per_session_day": 0.9619921363040629,
+  "exit_reasons": {
+    "target": 682,
+    "max_hold": 440,
+    "stop": 344,
+    "stop_same_minute": 2
+  },
+  "skip_reasons": {
+    "SKIP_news_blackout": 14,
+    "SKIP_gap_fill_past_target": 1
+  },
+  "n_hold_lt3": 27,
+  "data_start": "2021-01-03 23:00:00+00:00",
+  "data_end": "2026-10-30 20:58:00+00:00",
+  "run_seconds": 1.3,
+  "run_time_utc": "2026-11-13T04:08:07.916832+00:00"
+}

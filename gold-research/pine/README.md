@@ -1,6 +1,6 @@
-# pine/ — TradingView strategy for self-backtesting v2.1
+# pine/ — TradingView strategy for self-backtesting v2.2
 
-`gold_v21.pine` is one script that does three jobs: backtest engine for the Strategy Tester, simple on-chart guidance (instruction label, red risk box, green reward box, five-row table), and `alert()` messages for live or demo use (Create Alert → this script → "Any alert() function call": new setup, move stop order, filled, target hit, move stop, cancel, exit). It implements GOLD_PLAYBOOK_v2_CANDIDATE.md in its v2.1 form (trend-pullback trigger only, SMA200 daily bias, no momentum vote, 07:00–15:45 UTC window) with the sizing from ACCOUNT_RULES.md. Pine Script v6, strategy type, overlay.
+`gold_v21.pine` (strategy title "Gold v2.2"; the file name is historical) is one script that does four jobs (the fourth, the account guard, is described at the end): backtest engine for the Strategy Tester, simple on-chart guidance (instruction label, red risk box, green reward box, five-row table), and `alert()` messages for live or demo use (Create Alert → this script → "Any alert() function call": new setup, move stop order, filled, target hit, move stop, cancel, exit). It implements GOLD_PLAYBOOK_v2_CANDIDATE.md in its v2.1 form (trend-pullback trigger only, SMA200 daily bias, no momentum vote, 07:00–15:45 UTC window) with the sizing from ACCOUNT_RULES.md. Pine Script v6, strategy type, overlay.
 
 ## Setup in TradingView
 
@@ -27,7 +27,7 @@
 | Stop | swing extreme of the pullback bars ± max(0.30, 0.10 × ATR14) — **15-minute lows only; the research engine also used 1-minute lows** |
 | Target | 20-bar extreme at the first touch bar, capped at the prior-day high/low if more than 1 ATR beyond it |
 | Filter | reward/risk at placement ≥ 1.5; stop distance ≤ 0.6 × daily ATR |
-| Size | equity × 0.5 % ÷ stop distance, in ounces |
+| Size | equity × 0.5 % ÷ stop distance, in ounces, capped at 50 % margin use and 2.0 lots (added 2026-11-12 after the TradingView backtest showed margin calls: tight 15-minute stops produced 2-lot positions) |
 | Exit | 50 % at target, stop to entry ± 0.10, remainder trails at highest high − 3 × ATR; everything flat at the 20:45 UTC bar (fills at 20:45; the research rule was 20:50) |
 | Stops | day halts after 3 consecutive losses or −2 R closed; week halts at −4 R; max 3 entries per session day (23:00–23:00 UTC) |
 | News | no calendar access. Use the manual blackout inputs on red-folder days, or accept that the backtest trades through news (the research engine's approximate gate changed nothing) |
@@ -36,6 +36,7 @@
 
 - Stop placement uses 15-minute lows between first touch and fill, not 1-minute lows → stops slightly tighter in some trades.
 - Forced flat at 20:45 instead of 20:50 UTC.
+- Clock (corrected 2026-11-13): the research data runs on London local time, not UTC (PROJECT_STATE.md, working rules). Both scripts gate on the Europe/London clock by default through the `Session clock` input, so session times match the research all year. Every "UTC" session time in this README written before 2026-11-13 is London time. The news list and the firm's daily reset remain UTC.
 - Daily bars are TradingView's (exchange day) rather than the 23:00 UTC session day used in the research.
 - Fill prices are TradingView's (one price series, no bid/ask); commission input stands in for spread.
 - The script has not been compiled here; if the Pine editor reports an error, paste it back and it will be fixed.
@@ -44,13 +45,96 @@
 
 | Mode | What changes | Out-of-sample on HistData (results/summary_v2.md) |
 |---|---|---|
-| Strict (v2.1) | default | 61 trades, +0.339 R, PF 1.74 |
+| v2.2 (close confirmation) | **default**; touch bar must close on the trend side of EMA20 | 43 trades, +0.502 R, PF 2.17, max DD −5.2 R |
+| Strict (v2.1) | no confirmation | 55 trades, +0.414 R, PF 1.93 |
+| v2.2 New York only | signals 12:00–15:45 UTC only | 21 trades, +1.03 R, PF 5.2, but negative in development; small sample |
 | More trades: no daily bias | both directions | 158 trades, +0.179 R, PF 1.28 |
 | More trades: reward/risk 1.0 | min RR 1.0 | 110 trades, +0.205 R, PF 1.45 |
 | Most trades: no bias + RR 1.0 | both | not run in the research; expect the most trades and the least edge per trade |
 
-More trades always meant less edge per trade in the research. None of the modes produces a trade every day; the loosest is roughly one every two sessions.
+More trades always meant less edge per trade in the research. None of the modes produces a trade every day; the loosest is roughly one every two sessions. A forced daily trade was tested on 2026-11-12 (VALIDATION_REPORT_v2.md §8): the forced trades lost on average and the drawdown would close the account, so there is no daily mode. The "more trades" modes are also incompatible with the 6 % trailing floor (ACCOUNT_RULES.md, risk budget decision); they stay in the script for backtesting only.
 
 ## News blackout list (added 2026-11-12)
 
 The `Red-folder events` input holds UTC date-times (comma separated). No new order is placed, and any pending order is cancelled, on a bar that overlaps ±5 minutes of an event. The defaults cover the next weeks (CPI, NFP, FOMC, PCE/GDP days as known on 2026-11-12) and **must be verified and extended from Forex Factory every week**; times move one hour earlier in US summer time. Open positions are not closed by the gate: the account's rule only deducts profit on trades opened or closed inside the window.
+
+## Account guard (added 2026-11-12): "powered by Claude", inside TradingView
+
+Pine Script cannot call the internet, so it cannot call Claude or any AI model. What it can do is run the same checks Claude runs on every chart review, as code, on every bar. The `Account guard` input group holds the Atlas Funded numbers from ACCOUNT_RULES.md; the bottom-right **ACCOUNT CHECK** table shows each one with a colour and a final verdict. It never predicts direction.
+
+| Row | What it measures | Green / orange / red |
+|---|---|---|
+| TODAY'S LOSS | equity now vs equity at 00:00 UTC, open P&L included (firm: 3 % = breach) | new trades stop at 2 % (1,000 USD); everything is closed at 2.5 % |
+| TRAILING FLOOR | highest equity so far × 0.94 (firm: 6 % trailing) | new trades stop within 500 USD of the floor; everything is closed within 200 USD |
+| FLOATING P&L | open profit or loss (firm Protector: −1,000 USD = positions closed, payout split halved) | everything is closed at −700 USD |
+| NEWS | minutes to the next event in the red-folder list; red while in the ±5-minute blackout | orange inside one hour |
+| CONSISTENCY | best UTC day's closed profit as % of closed profit since `Payout cycle start` (firm: max 20 %) | orange above 20 %: payout will be delayed, not a breach |
+| INACTIVITY | days since the last fill (firm: 30 days = breach) | orange from 20 days, red from 25 |
+| VERDICT | OK TO TAKE THE NEXT SETUP / NO NEW TRADES: reason / CLOSE EVERYTHING: reason | |
+
+When the guard halts, pending orders are cancelled, no new setup is placed, the top banner says why, and an alert fires once (`ACCOUNT GUARD: no new trades (...)`). When it says close, the script closes its own backtest position at the next bar open and the alert `ACCOUNT GUARD: CLOSE EVERYTHING IN MT5 NOW (...)` fires; in live use you still close the MT5 position yourself.
+
+Limits to know: equity is read at bar closes, so intrabar peaks and the exact 00:00 UTC equity are approximations (the firm uses tick equity); the script only sees its own trades, not discretionary ones in MT5; the 3-minute minimum hold cannot be enforced on 15-minute bars (a stop hit in the entry bar is a loss anyway, and losses are not deducted). In a multi-year backtest the trailing floor behaves like the real account: once equity falls 6 % from its peak the guard stops trading for good, which is what would have happened to the account. Turn `Account guard on` off to see the raw strategy through a drawdown, and on to see whether the account would have survived.
+
+## Review fixes (2026-11-12, after an independent three-lens code review)
+
+- **Protective orders from the fill tick.** The stop and the first target are now attached to the entry order itself (`strategy.exit(..., from_entry=...)` issued together with `strategy.entry`), so they are live during the bar in which the entry fills. Before, they were only placed at the close of the fill bar, which let a reversal bar run past the stop and executed the stop at the next open. Expect more exits at the planned stop price and more T1 fills than in earlier runs.
+- **Consecutive losses are counted per trade,** not per exit leg (the T1 leg and the remainder are two rows in the List of Trades). The three-loss daily halt no longer trips after two losers.
+- **Trades that fill and exit inside one bar** (a stop hit in the fill bar) are now detected from the closed-trade counter, so they count towards the daily cap and the loss streak, clear the pending state and draw their WON/LOST label. Before, such a trade left a stale pending order that was re-submitted.
+- **Alerts accumulate within a bar** (`cancel | new setup`), so a cancel is never overwritten by a new order message.
+- **Force flat** default is now the 20:30 bar, so the close order fills at 20:45 UTC, five minutes before the research engine's 20:50 and well before the daily feed break. On-chart texts are built from the inputs.
+- **Max hold:** 1 = close at the end of the fill bar (within 15 minutes), 2 = within 30 minutes.
+- The script stops with an error on any chart other than 15 minutes; the news-list parser tolerates a blank list; the box drawings are guarded against missing values and the reward box disappears after T1.
+- Not changed, and documented here: the research bias used an additional 12-1 momentum vote with half size on disagreement (the script uses SMA200 only); the research engine checked the news window at the bar close while the script blocks any bar overlapping the window; the engine's Monday gap gate is absent; the daily SMA200 needs 200 daily bars of history, so the first trades appear about ten months into any backtest window.
+
+## EVERY DAY mode (added 2026-11-12 at Aayan's request; tested and rejected in VALIDATION_REPORT_v2.md §8)
+
+MODE "EVERY DAY: v2.2 + forced trade at 13:30 UTC (tested: loses)". Normal v2.2 pullback setups all day; if no entry has happened by the bar that opens at 13:30 UTC, a market order in the direction of the daily bias (DI direction when the bias filter is off; skipped when the bias is undefined), stop 1.5 × ATR14, half off at 1.5 × that distance, remainder on the usual breakeven and trail, flat at 20:45. It fires on the first bar from 13:30 where every gate passes, so on a listed news day it fires one bar later; it never fires on a pullback-setup bar, after the daily or weekly stop, under the account guard, or more than once a day. A "DAILY TRADE skipped: reason" alert explains a missed day. Research numbers for the forced trades: −0.03 to −0.12 R per trade, 40–87 R drawdown, about 60 % losing days. The account guard halts the mode when the drawdown approaches the firm's floor.
+
+## gold_hl_breakout.pine (added 2026-11-13): Aayan's own idea, "mark the highs and lows, trade the break"
+
+A separate strategy script (title "Gold HL Breakout"), same chart and tester settings as above. It marks a high and a low, rests a buy stop 0.10 above the high and a sell stop 0.10 below the low between 07:00 and 16:00 UTC (one cancels the other), and closes everything at 20:45 UTC. The research for it is VALIDATION_REPORT_v5.md (engine `backtest/engine_v5_hl.py`, six pre-registered readings); the script and the engine follow the same frozen rules (results/PREREGISTRATION_v5_hl.md).
+
+| Input | Choices | Research reading |
+|---|---|---|
+| LEVELS | Swing highs and lows (swing size 5 or 10 bars each side) / Yesterday's high and low | HL_SW5, HL_SW10 / HL_PD |
+| EXIT | Target (1.5 x risk) / Trailing stop (3 x ATR, no target) | _RR / _TRAIL |
+| Trade only with the daily trend | off / on | HL_SW5_RR_BIAS when on |
+
+Rules that matter when reading the chart:
+
+- A swing only becomes a marked level once N later bars have closed (no hindsight). The green line is the marked high ("buy above"), the red line the marked low ("sell below").
+- A level that price has already traded through is used up, whether or not an order was resting there. The line ends, the label turns grey ("already broken") and the script waits for the next swing. It never chases.
+- Stop = the opposite marked level, clamped between 0.3 x ATR14 (15-minute) and 0.6 x the daily ATR. The stop and target of a resting order only change when one of the two marked levels changes.
+- At most 3 entries a day with swing levels, 1 with yesterday's levels. No order rests during a bar that overlaps a listed news window. The account guard, the size cap and the alerts are the same as in Gold v2.2.
+- Differences from the research engine: TradingView has one price series (no bid/ask), fills are simulated on 15-minute bars unless the bar magnifier is on, the daily bar boundary is TradingView's, and the account guard is on by default (the research has no guard).
+
+Compiled and run by Aayan on 2026-11-13 (first version: 87 trades, PF 1.05, Aug-Nov 2026).
+
+**Second change of defaults on 2026-11-13 (VALIDATION_REPORT_v5.md §10):** `Orders from: hour` is now 1, so orders rest 01:00-16:00 London time (research variant HL_C_W01: held-out 666 trades, PF 1.37, +0.14 R per trade, +94 R, max drawdown 9 R, 1.09 trades a day; development break-even with a 27 R drawdown; by year -8 / +10 / -11 / +33 / +47 / +29 R; the last three months of data were -2.7 R). Set the hour back to 7 for the previous version described next. Entries on the 5-minute or 1-minute chart were tested and lose in every period (§11); they are not in the script.
+
+**Defaults changed on 2026-11-13 after the six-year test (VALIDATION_REPORT_v5.md):** swing size 10, `Trade only with the 15-minute trend` on (buy side only above EMA50, sell side only below), `Skip a trade whose stop is nearer than x daily ATR` 0.10, risk 0.25 %. This is research variant HL_IMP10_MS_T: held-out 28 months 511 trades, PF 1.34, +0.12 R per trade, max drawdown 10 R, 0.84 trades a day; development 2021 to mid-2024 negative (PF 0.93, drawdown 56 R); by year -17 / +8 / -30 / +18 / +30 / +23 R. It fails the project's strict rule and depends on gold trending. The original (swing 5, trend filter off, minimum stop 0) is break-even over six years. The research engine evaluates the trend filter and the minimum stop exactly as the script does, except that the script recomputes a resting order's stop when it is placed again the next morning.
+
+## gold_quick.pine ("Gold Quick"): the quick in, quick out idea, for the Strategy Tester and demo only
+
+Built on 2026-11-13 because Aayan asked for it. The idea (enter in the direction of the move, leave after 5 to 15
+minutes) lost in every period of the six-year test in all thirteen tested forms (VALIDATION_REPORT_v7.md). The script
+says so in its header, in the red banner row and in the monitor table. Default risk 0.10 %.
+
+- Chart: XAUUSD (FOREX.com), **1-minute or 5-minute**. Any other timeframe stops with a message.
+- Signals: "Trend + small breakout" (default), "Fast move", "Trend + pullback". Trend = last closed 15-minute bar
+  against its EMA50, EMA50 rising or falling. Entry at market at the next bar's open, stop 1 x ATR14(M15) from the fill,
+  exit after 5 / 10 / 15 / 30 minutes, at most 6 trades a day, signals 07:00 to 16:00 London time.
+- Cost: 0.20 USD commission per ounce per fill stands in for spread and slippage (0.40 per round trip).
+- A free TradingView plan shows a few days of 1-minute history or a few weeks of 5-minute history. That is 20 to 100
+  trades: far too few to tell a 0.08 R loss per trade from a profit. The six-year numbers are the ones to believe.
+- Port check: backtest/verify_v7_pine_port.py (signal sets identical to the research engine). Not compiled here.
+
+## gold_hl_breakout.pine: bigger timeframe for the direction (added 2026-11-13)
+
+Input "BIGGER TIMEFRAME for the direction": Off / 1 hour / **4 hours (default)**. Buy orders exist only while the last
+closed bar of that timeframe is above its rising EMA50, sell orders only while it is below its falling EMA50; the
+15-minute EMA50 filter still applies. Research id HL_C_W01_RH4 (VALIDATION_REPORT_v8.md): about a third fewer trades
+(0.7 a day), +0.19 R per trade instead of +0.14 R, held-out drawdown -6 R instead of -9 R, total +81 R instead of
++94 R over the last 28 months. Risk default 0.15 % since the account simulation (VALIDATION_REPORT_v8.md §10): at
+0.25 % the 2023 drawdown would have stopped a 50k account, at 0.15 % it survived every start month. "Off" reproduces HL_C_W01. The monitor row "BIGGER TREND" shows the state.

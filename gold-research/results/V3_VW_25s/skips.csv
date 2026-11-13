@@ -1,0 +1,2 @@
+signal_time,side,reason,fill,stop,target
+2023-06-26 08:00:00+00:00,long,SKIP_gap_fill_past_target,1929.085,1920.444738791568,1925.4552714285715

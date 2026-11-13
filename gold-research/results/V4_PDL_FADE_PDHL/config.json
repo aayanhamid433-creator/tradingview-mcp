@@ -1,0 +1,83 @@
+{
+  "config": {
+    "version": "v4.0-pdlvl_fade",
+    "adx_len": 14,
+    "ema_len": 20,
+    "atr_len": 14,
+    "time_exit": "20:50",
+    "spread": 0.25,
+    "slippage": 0.05,
+    "commission_rt": 0.0,
+    "ambiguity": "stop_first",
+    "warmup_bars": 200,
+    "family": "PDLVL_FADE",
+    "level_set": "PDHL",
+    "stop_d1atr": 0.1,
+    "target_mult": 1.5,
+    "min_dist_d1atr": 0.05,
+    "through": 0.1,
+    "placement_bar_open": "06:45",
+    "cancel_time": "16:00",
+    "blackout_start": "13:25",
+    "blackout_end": "13:35",
+    "max_hold_minutes": null,
+    "one_trade_per_day": true,
+    "variant": "V4_PDL_FADE_PDHL",
+    "variant_id": "PDL_FADE_PDHL"
+  },
+  "n_trades": 852,
+  "n_skips": 672,
+  "counters": {
+    "ambiguous_stop_target": 2,
+    "both_sides_same_minute": 0,
+    "same_minute_stop": 65,
+    "gap_fill_skipped": 28,
+    "session_days": 1524,
+    "placements": 1501,
+    "placements_both": 1059,
+    "placements_buy_only": 269,
+    "placements_sell_only": 173,
+    "fills_long": 442,
+    "fills_short": 410,
+    "blackout_bars_not_evaluated": 10054,
+    "cancelled_unfilled_at_cutoff": 621,
+    "cancelled_session_ended": 0,
+    "placement_bar_missing": 23,
+    "no_level": 0
+  },
+  "m15_bars": 134741,
+  "m1_bars": 2020438,
+  "n_session_days": 1526,
+  "n_session_days_evaluated": 1524,
+  "trades_per_session_day": 0.5583224115334207,
+  "exit_reasons": {
+    "stop": 503,
+    "target": 283,
+    "stop_same_minute": 65,
+    "time_exit": 1
+  },
+  "skip_reasons": {
+    "CANCEL_unfilled_at_cutoff": 621,
+    "SKIP_gap_fill_past_stop": 28,
+    "SKIP_placement_bar_missing": 23
+  },
+  "n_hold_lt3": 159,
+  "periods": {
+    "development": [
+      "2021-01-04",
+      "2024-07-01"
+    ],
+    "validation": [
+      "2024-07-01",
+      "2025-09-01"
+    ],
+    "final_test": [
+      "2025-09-01",
+      "2026-11-01"
+    ]
+  },
+  "data_start": "2021-01-03 23:00:00+00:00",
+  "data_end": "2026-10-30 20:58:00+00:00",
+  "run_seconds": 2.2,
+  "run_time_utc": "2026-11-13T04:27:43.179000+00:00"
+}
