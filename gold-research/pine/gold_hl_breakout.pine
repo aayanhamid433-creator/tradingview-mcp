@@ -3,11 +3,14 @@
 // either one, buy or sell". One script: backtest engine (Strategy Tester), simple visuals, alert instructions and the
 // account guard. XAUUSD (FOREX.com), 15-minute chart only. Research and honest numbers: gold-research/VALIDATION_REPORT_v5.md.
 //
-// DEFAULTS = the improved version found on 2026-11-13 (research id HL_IMP10_MS_T): big swings (10 bars each side),
-// trade only with the 15-minute trend (EMA50), skip trades whose stop is tighter than 0.10 x the daily ATR.
-// Six-year test, 1 R = the risk of one trade:  2021 -17 R | 2022 +8 R | 2023 -30 R | 2024 +18 R | 2025 +30 R | 2026 +23 R.
-// Last 28 months (not used to design it): 511 trades, PF 1.34, +0.12 R per trade, worst drawdown -10 R, 0.84 trades a day.
-// It LOST in the quiet years 2021 and 2023. It does not pass the project's strict rule. Risk default is 0.25 % for that reason.
+// DEFAULTS = the improved version (research id HL_C_W01): big swings (10 bars each side), trade only with the 15-minute
+// trend (EMA50), skip trades whose stop is tighter than 0.10 x the daily ATR, orders from 01:00 to 16:00 London time.
+// Six-year test, 1 R = the risk of one trade:  2021 -8 R | 2022 +10 R | 2023 -11 R | 2024 +33 R | 2025 +47 R | 2026 +29 R.
+// Last 28 months: 666 trades, PF 1.37, +0.14 R per trade, worst drawdown -9 R, 1.1 trades a day, 75 % of months positive.
+// 2021 to mid-2024 was only break-even (PF 1.01, drawdown -27 R), and negative with a wider spread. It does not pass the
+// project's strict rule; risk default is 0.25 % for that reason. With orders from 07:00 instead (input "Orders from: hour"
+// = 7) it trades less and made about two thirds of the profit. Entries on the 5-minute or 1-minute chart were tested and
+// lose in every period (VALIDATION_REPORT_v5.md section 11); they are not in this script.
 // The original idea without the three changes (swing 5, trend off, minimum stop 0) is break-even over six years (PF 0.99-1.10).
 //
 // THE RULES
@@ -15,7 +18,7 @@
 //      A swing only counts once N later bars have closed, so nothing is drawn with hindsight.
 //      (LEVELS input: or use yesterday's high and low instead.)
 //      TREND FILTER: the buy order exists only while price closes above the 15-minute EMA50, the sell order only below it.
-//   2. ORDERS between 07:00 and 16:00 London time (= UTC in winter, UTC+1 in summer; the research clock): a BUY STOP 0.10 above the marked high and a SELL STOP 0.10 below the marked
+//   2. ORDERS between 01:00 and 16:00 London time (= UTC in winter, UTC+1 in summer; the research clock): a BUY STOP 0.10 above the marked high and a SELL STOP 0.10 below the marked
 //      low. When one fills, the other is cancelled. A level that price has already traded through is used up: the
 //      script never chases it and waits for the next swing to form.
 //   3. STOP at the opposite marked level, but never further than 0.6 x the daily ATR and never nearer than
@@ -54,7 +57,7 @@ maxHoldB = input.int(0, "Max hold in 15-min bars (0 = off; 1 = out within 15 min
 
 gTime    = "3. SESSION (London time)"
 sessTz   = input.string("Europe/London", "Session clock (the research data runs on London time = UTC in winter, UTC+1 in summer)", options=["Europe/London", "UTC"], group=gTime)
-startH   = input.int(7,  "Orders from: hour", minval=0, maxval=23, group=gTime)
+startH   = input.int(1,  "Orders from: hour (1 = tested best; 7 = London open only, fewer trades)", minval=0, maxval=23, group=gTime)
 startM   = input.int(0,  "Orders from: minute", minval=0, maxval=59, group=gTime)
 cutH     = input.int(16, "Cancel unfilled orders at: hour", minval=0, maxval=23, group=gTime)
 cutM     = input.int(0,  "Cancel unfilled orders at: minute", minval=0, maxval=59, group=gTime)

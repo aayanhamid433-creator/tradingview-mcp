@@ -1,0 +1,23 @@
+# summary_v6 — M15 levels with M5 / M1 entries (seven variants, base costs and `_stress` = spread 0.50, slippage 0.10); generated 2026-11-13
+
+One line per variant: development | validation | final test || pooled held-out (validation + final test). R per trade, PF, max drawdown in R, win rate;
+held-out 90 % bootstrap CI, total R, mean R without the five best trades, trades per weekday, share of weekdays with a trade, share of traded days that end positive, worst day, median hold.
+
+```
+V6_MTF10_M1            | dev n=1094 R=-0.312 PF=0.61 DD=-349.0 win=25% | val n= 337 R=-0.254 PF=0.67 DD= -94.4 win=26% | fin n= 314 R=-0.120 PF=0.84 DD= -49.2 win=31% || OOS R=-0.190 CI[-0.284,-0.096] tot=-123.4 exTop5=-0.207 | 1.07/day, days traded 79%, win days 35%, worst day -13.2R, hold 5m
+V6_MTF10_M1_stress     | dev n=1093 R=-0.534 PF=0.40 DD=-585.3 win=18% | val n= 337 R=-0.360 PF=0.56 DD=-126.4 win=23% | fin n= 314 R=-0.212 PF=0.73 DD= -67.1 win=28% || OOS R=-0.288 CI[-0.380,-0.198] tot=-187.6 exTop5=-0.306 | 1.07/day, days traded 79%, win days 31%, worst day -12.4R, hold 5m
+V6_MTF10_M5            | dev n=1059 R=-0.243 PF=0.68 DD=-260.7 win=27% | val n= 328 R=-0.069 PF=0.90 DD= -44.9 win=32% | fin n= 301 R=-0.025 PF=0.96 DD= -22.2 win=33% || OOS R=-0.048 CI[-0.140,+0.045] tot=-30.0 exTop5=-0.064 | 1.03/day, days traded 78%, win days 38%, worst day -3.1R, hold 22m
+V6_MTF10_M5_NOTREND    | dev n=1220 R=-0.222 PF=0.70 DD=-274.1 win=28% | val n= 359 R=-0.063 PF=0.91 DD= -47.9 win=32% | fin n= 341 R=-0.023 PF=0.97 DD= -28.3 win=33% || OOS R=-0.043 CI[-0.128,+0.044] tot=-30.4 exTop5=-0.058 | 1.15/day, days traded 82%, win days 39%, worst day -3.1R, hold 22m
+V6_MTF10_M5_NOTREND_stress | dev n=1221 R=-0.328 PF=0.58 DD=-400.6 win=25% | val n= 359 R=-0.172 PF=0.76 DD= -72.5 win=29% | fin n= 341 R=-0.067 PF=0.90 DD= -37.0 win=32% || OOS R=-0.121 CI[-0.206,-0.037] tot=-84.8 exTop5=-0.136 | 1.15/day, days traded 82%, win days 37%, worst day -3.2R, hold 23m
+V6_MTF10_M5_T15        | dev n=1059 R=-0.218 PF=0.69 DD=-236.0 win=33% | val n= 328 R=-0.104 PF=0.84 DD= -40.1 win=36% | fin n= 302 R=-0.060 PF=0.90 DD= -34.7 win=38% || OOS R=-0.083 CI[-0.161,-0.002] tot=-52.2 exTop5=-0.095 | 1.03/day, days traded 78%, win days 43%, worst day -3.1R, hold 19m
+V6_MTF10_M5_T15_stress | dev n=1060 R=-0.350 PF=0.54 DD=-371.5 win=28% | val n= 328 R=-0.160 PF=0.76 DD= -55.7 win=34% | fin n= 302 R=-0.081 PF=0.87 DD= -38.3 win=37% || OOS R=-0.122 CI[-0.201,-0.043] tot=-76.9 exTop5=-0.135 | 1.03/day, days traded 78%, win days 42%, worst day -3.1R, hold 20m
+V6_MTF10_M5_T30        | dev n=1056 R=-0.208 PF=0.74 DD=-236.4 win=22% | val n= 328 R=-0.087 PF=0.88 DD= -48.0 win=25% | fin n= 299 R=+0.005 PF=1.01 DD= -27.8 win=26% || OOS R=-0.043 CI[-0.153,+0.064] tot=-27.0 exTop5=-0.068 | 1.03/day, days traded 78%, win days 33%, worst day -3.1R, hold 29m
+V6_MTF10_M5_T30_stress | dev n=1056 R=-0.352 PF=0.58 DD=-373.8 win=19% | val n= 327 R=-0.220 PF=0.72 DD= -80.3 win=22% | fin n= 299 R=-0.028 PF=0.96 DD= -32.4 win=25% || OOS R=-0.128 CI[-0.235,-0.022] tot=-80.2 exTop5=-0.153 | 1.03/day, days traded 78%, win days 30%, worst day -3.2R, hold 29m
+V6_MTF10_M5_stress     | dev n=1060 R=-0.352 PF=0.56 DD=-372.8 win=24% | val n= 328 R=-0.169 PF=0.77 DD= -65.0 win=29% | fin n= 301 R=-0.070 PF=0.90 DD= -32.2 win=32% || OOS R=-0.121 CI[-0.210,-0.031] tot=-76.4 exTop5=-0.138 | 1.03/day, days traded 78%, win days 36%, worst day -3.2R, hold 23m
+V6_MTF5_M1             | dev n=1505 R=-0.315 PF=0.61 DD=-479.3 win=25% | val n= 531 R=-0.258 PF=0.67 DD=-137.5 win=26% | fin n= 464 R=-0.102 PF=0.86 DD= -76.3 win=32% || OOS R=-0.185 CI[-0.260,-0.112] tot=-184.4 exTop5=-0.196 | 1.63/day, days traded 90%, win days 36%, worst day -13.2R, hold 4m
+V6_MTF5_M1_stress      | dev n=1502 R=-0.559 PF=0.38 DD=-844.6 win=17% | val n= 530 R=-0.410 PF=0.51 DD=-216.4 win=22% | fin n= 464 R=-0.173 PF=0.77 DD= -96.5 win=30% || OOS R=-0.299 CI[-0.373,-0.226] tot=-297.6 exTop5=-0.311 | 1.63/day, days traded 90%, win days 32%, worst day -12.4R, hold 4m
+V6_MTF5_M5             | dev n=1463 R=-0.263 PF=0.65 DD=-398.4 win=26% | val n= 508 R=-0.177 PF=0.76 DD= -91.1 win=28% | fin n= 430 R=-0.023 PF=0.97 DD= -48.9 win=33% || OOS R=-0.107 CI[-0.180,-0.033] tot=-100.1 exTop5=-0.118 | 1.54/day, days traded 90%, win days 42%, worst day -5.7R, hold 21m
+V6_MTF5_M5_stress      | dev n=1462 R=-0.401 PF=0.51 DD=-590.9 win=22% | val n= 508 R=-0.256 PF=0.67 DD=-131.1 win=26% | fin n= 430 R=-0.085 PF=0.88 DD= -63.2 win=31% || OOS R=-0.178 CI[-0.248,-0.103] tot=-166.6 exTop5=-0.189 | 1.54/day, days traded 90%, win days 40%, worst day -5.2R, hold 21m
+```
+
+See VALIDATION_REPORT_v5.md §11.

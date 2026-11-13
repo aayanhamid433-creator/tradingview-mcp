@@ -1,8 +1,8 @@
 # VALIDATION REPORT v5 — "mark the highs and lows, trade the break" (Aayan's idea), 2026-11-13
 
-Status: **UNVALIDATED. No variant passes the pre-registered rule.** One improved variant is clearly better than the
-original on the 28 held-out months and is regime-dependent: it made money in 2022, 2024, 2025 and 2026 and lost in 2021
-and 2023. Written by the main session; the planned adversarial agent verification could not run (usage limit) and is
+Status: **UNVALIDATED. No variant passes the pre-registered rule.** The improved variants are clearly better than the
+original on the 28 held-out months and are regime-dependent: money in 2022, 2024, 2025 and 2026, losses in 2021 and 2023.
+Best so far: HL_C_W01 (§10). Lower-timeframe entries are rejected (§11). Written by the main session; the planned adversarial agent verification could not run (usage limit) and is
 replaced here by an independent replay and direct checks (§5). It is still to be run.
 
 ## 1. The idea and how it was frozen
@@ -40,7 +40,7 @@ Reading. The original idea (small swings, 1.5 R target) trades on 97 % of days a
 development 39.3 % of its trades reached the 1.5 R target before the stop; a coin flip gives 40.0 %. The median stop was
 6.5 USD, so the 0.35 USD round trip cost 0.054 R per trade, about the whole gross edge. The trailing exit is worse than
 the target. Bigger swings and previous-day levels are positive on the held-out months and negative in development.
-The same six-year window for Aayan's TradingView run (2026-08-02 to 2026-10-30 in this data): 76 trades, +0.047 R,
+In the window of Aayan's TradingView run (2026-08-02 to 2026-10-30 in this data) the engine has 76 trades, +0.047 R,
 PF 1.11, against his 87 trades and PF 1.05 to 2026-11-13: the script and the engine agree.
 
 ## 4. Improvement round (v5b, eight variants frozen before running)
@@ -126,8 +126,79 @@ constant 0.25 USD spread flatters recent years (FOREX.com showed 0.55-0.65 USD o
 is tested in §5); no volume; no news gate in the engine; approximate session-day boundary. The first clean test is the
 forward test.
 
-## 9. Files
+## 9. Files (see also the lists in §10 and §11)
 
 backtest/engine_v5_hl.py, verify_v5_replay.py, verify_v5b_replay.py, verify_v5_handcheck.py (left unfinished by the
 interrupted implementer; not relied on); results/PREREGISTRATION_v5_hl.md, PREREGISTRATION_v5b_hl_improve.md,
 results/V5_HL_*/{trades.csv, skips.csv, levels.csv, config.json}, results/summary_v5.md; pine/gold_hl_breakout.pine.
+
+## 10. v5c: more trades and more profit from the improved breakout (frozen addendum, run 2026-11-13)
+
+Aayan after HL_IMP10_MS_T: "the trades are lower and the profit isn't that much". Eight exploratory variants on that base
+(its held-out results were known), frozen in the v5c addendum of results/PREREGISTRATION_v5b_hl_improve.md with the
+criterion "raises the total R in BOTH development and held-out, held-out PF not below 1.25, held-out drawdown not beyond 12 R".
+
+| variant | development n / mean R / PF / total / max DD | held-out n / mean R / PF / total / max DD | trades per day | criterion |
+|---|---|---|---|---|
+| HL_IMP10_MS_T (base, orders 07:00-16:00, target 1.5 R) | 859 / -0.034 / 0.93 / -29 R / -56 R | 511 / +0.121 / 1.34 / +62 R / -10 R | 0.84 | |
+| **HL_C_W01** (orders 01:00-16:00) | 1,017 / +0.006 / 1.01 / +6 R / -27 R | 666 / +0.141 / 1.37 / +94 R / -9 R | 1.09 | **met** |
+| HL_C_W0119 (orders 01:00-19:00) | 1,098 / +0.007 / 1.02 / +8 R / -26 R | 707 / +0.134 / 1.36 / +95 R / -10 R | 1.16 | met |
+| HL_C_W19 (orders 07:00-19:00) | 952 / -0.026 / 0.94 / -25 R / -54 R | 558 / +0.114 / 1.33 / +64 R / -13 R | 0.91 | drawdown |
+| HL_C_E5 (5 entries a day, to 19:00) | 953 / -0.025 / 0.94 / -24 R / -53 R | 559 / +0.114 / 1.33 / +64 R / -13 R | 0.92 | drawdown |
+| HL_C_T20 (target 2.0 R) | 850 / -0.045 / 0.91 / -38 R / -64 R | 509 / +0.135 / 1.36 / +69 R / -15 R | 0.83 | development worse |
+| HL_C_T30 (target 3.0 R) | 847 / -0.037 / 0.93 / -31 R / -61 R | 508 / +0.136 / 1.36 / +69 R / -14 R | 0.83 | development worse |
+| HL_C_EOD (no target) | 847 / -0.012 / 0.98 / -10 R / -46 R | 508 / +0.141 / 1.37 / +71 R / -18 R | 0.83 | drawdown |
+| HL_C_W19_T20 | 934 / -0.039 / 0.92 / -36 R / -63 R | 552 / +0.131 / 1.36 / +72 R / -18 R | 0.90 | development worse |
+
+Letting orders rest from 01:00 instead of 07:00 is the one change that helps everywhere: half again as much held-out
+profit, a trade on 94 % of days, the development period turns from a 29 R loss into break-even and its drawdown halves.
+Wider targets and later hours do not meet the criterion.
+
+Checks on HL_C_W01: independent replay IDENTICAL (1,683 trades). Costs doubled: held-out +0.123 R, PF 1.31, +82 R,
+drawdown -10.6 R; development -0.037 R, drawdown -57 R. Costs tripled: held-out +0.104 R, PF 1.26. 18 of 18 one-at-a-time
+shifts keep a positive held-out mean (order start 00:00 / 02:00 / 03:00 / 05:00, end 15:00 / 17:00, pivot 8 / 12, target
+1.2 / 1.8, minimum stop, stop cap, offset, entries a day): +0.108 to +0.149 R. By entry block, held-out: 01:00-07:00 369
+trades +0.144 R; 07:00-12:00 161 trades +0.173 R; 12:00-16:00 136 trades +0.097 R (development: +0.027 / +0.009 / -0.051).
+Held-out by side: 361 buys +0.207 R, 305 sells +0.064 R. Held-out months: 75 % positive, worst -4.2 R, best +12.5 R,
+median +3.6 R; development months: 52 % positive, worst -13.9 R. Longest held-out losing streak 8.
+
+| year | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|
+| HL_C_W01 total R | -8.2 | +10.1 | -10.5 | +32.5 | +46.5 | +29.3 |
+
+Last three months of the data (2026-08-02 to 2026-10-30, the window Aayan can see in TradingView): HL_C_W01 77 trades,
+-2.7 R (its worst stretch of the final test); HL_IMP10_MS_T 54 trades, +3.8 R. Over the 14 months of the final test:
++48.4 R against +25.1 R, 11 against 9 positive months. The default is chosen on the six years, not on three months.
+
+Verdict: against the strict rule HL_C_W01 has mean R > 0 in all three periods, a held-out CI that excludes zero, PF 1.35
+and 1.39, drawdown within 10 R in both held-out periods, and fails only the development drawdown (-27 R) with a
+development edge of zero. Still UNVALIDATED: exploratory on known held-out data, regime-dependent, and negative in
+development once the spread is doubled. Money at 0.25 % risk (125 USD per R): held-out +420 USD a month on average
+(+367 with doubled costs), worst drawdown about 1,160 USD; the development drawdown would be 3,340 USD (6.7 %).
+Pine default: orders from 01:00.
+
+## 11. v6: levels on the 15-minute chart, entries on the 5-minute or 1-minute chart (frozen results/PREREGISTRATION_v6_mtf.md)
+
+Aayan's proposal for more trades. Signal = a completed M5 (or M1) bar closing beyond the marked M15 level; market entry
+on the next minute; stop behind the signal bar (at least 1 x ATR14 of that timeframe); target 2 R; same window, trend
+filter, daily cap and exits. Engine backtest/engine_v6_mtf.py (mechanical assertions and hand checks passed).
+
+| variant | development n / mean R / PF | validation | final test | held-out mean R | held-out, costs doubled | median stop (USD) |
+|---|---|---|---|---|---|---|
+| MTF10_M5 | 1,059 / -0.243 / 0.68 | 328 / -0.069 / 0.90 | 301 / -0.025 / 0.96 | -0.048 | -0.121 | 2.9 |
+| MTF10_M1 | 1,094 / -0.312 / 0.61 | 337 / -0.254 / 0.67 | 314 / -0.120 / 0.84 | -0.190 | -0.288 | 1.5 |
+| MTF5_M5 | 1,463 / -0.263 / 0.65 | 508 / -0.177 / 0.76 | 430 / -0.023 / 0.97 | -0.107 | -0.178 | 2.6 |
+| MTF5_M1 | 1,505 / -0.315 / 0.61 | 531 / -0.258 / 0.67 | 464 / -0.102 / 0.86 | -0.185 | -0.299 | 1.4 |
+| MTF10_M5_T15 (target 1.5 R) | 1,059 / -0.218 / 0.69 | 328 / -0.104 / 0.84 | 302 / -0.060 / 0.90 | -0.083 | -0.122 | 2.9 |
+| MTF10_M5_T30 (target 3 R) | 1,056 / -0.208 / 0.74 | 328 / -0.087 / 0.88 | 299 / +0.005 / 1.01 | -0.043 | -0.128 | 2.9 |
+| MTF10_M5_NOTREND | 1,220 / -0.222 / 0.70 | 359 / -0.063 / 0.91 | 341 / -0.023 / 0.97 | -0.043 | -0.121 | 2.8 |
+
+Rejected. Every variant loses in development and validation, and every one loses in all three periods once costs are
+doubled. The stop behind a 5-minute or 1-minute bar is 1.5 to 3 USD (4 to 9 USD in 2026), so the 0.35 USD round trip is
+0.09 to 0.33 R per trade; before costs the entries are about break-even (gross R per year between -0.15 and +0.09).
+Development drawdowns are 240 to 480 R. The 1-minute versions hold a median of five minutes and had days of -13 R on
+news spikes. Lower-timeframe entries add trades, not profit, and are not in the Pine script.
+
+Files for §10 and §11: backtest/engine_v5_hl.py (V5C variants), backtest/engine_v6_mtf.py, backtest/verify_v5b_replay.py,
+results/V5_HL_C_*/, results/V6_MTF*/ (and *_stress/), results/PREREGISTRATION_v6_mtf.md, results/summary_v5.md, results/summary_v6.md.
+
