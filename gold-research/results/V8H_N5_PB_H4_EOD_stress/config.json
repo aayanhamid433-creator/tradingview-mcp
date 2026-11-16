@@ -1,0 +1,29 @@
+{
+  "config": {
+    "spread": 0.5,
+    "slippage": 0.1,
+    "cap_entries": 3,
+    "win_start": 420,
+    "win_end": 960,
+    "flat_at": 1250,
+    "warmup_m15": 200,
+    "max_fill_delay": 2,
+    "pb_len": 20,
+    "ref": "h4",
+    "stop_mode": "d1atr",
+    "stop_k": 0.25,
+    "hold": null,
+    "target_r": null
+  },
+  "n_trades": 2272,
+  "counters": {
+    "signals": 15204,
+    "taken": 2272,
+    "skipped_busy_or_cap": 12930,
+    "late": 2,
+    "same_minute_stop": 2,
+    "ambiguous_stop_target": 0
+  },
+  "data_start": "2021-01-03 23:00:00+00:00",
+  "data_end": "2026-10-30 20:58:00+00:00"
+}

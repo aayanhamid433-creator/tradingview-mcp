@@ -1,0 +1,33 @@
+{
+  "config": {
+    "spread": 0.25,
+    "slippage": 0.05,
+    "offset": 0.1,
+    "cap_k": 0.6,
+    "floor_k": 1.0,
+    "target_mult": 2.0,
+    "pivot_n": 10,
+    "ltf": 5,
+    "trend": true,
+    "cap_entries": 3,
+    "win_start": 420,
+    "win_end": 960,
+    "flat_at": 1250,
+    "warmup": 200,
+    "max_fill_delay": 5
+  },
+  "n_trades": 1688,
+  "counters": {
+    "signals": 3784,
+    "signals_blocked": 2092,
+    "refused_gap": 0,
+    "late_or_closed": 4,
+    "same_minute_stop": 20,
+    "levels_high": 4352,
+    "levels_low": 4376,
+    "floor_used": 422,
+    "cap_used": 6
+  },
+  "data_start": "2021-01-03 23:00:00+00:00",
+  "data_end": "2026-10-30 20:58:00+00:00"
+}

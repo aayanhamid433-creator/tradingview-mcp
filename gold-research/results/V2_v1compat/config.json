@@ -42,6 +42,7 @@
     "trail_mult": null,
     "trigger_a": true,
     "trigger_b": false,
+    "confirm_close": false,
     "trig_b_start": "07:00",
     "trig_b_end": "10:45",
     "trig_b_adx": 20.0,
@@ -56,5 +57,5 @@
   "m1_bars": 2020438,
   "data_start": "2021-01-03 23:00:00+00:00",
   "data_end": "2026-10-30 20:58:00+00:00",
-  "run_time_utc": "2026-11-09T17:03:41.217351+00:00"
+  "run_time_utc": "2026-11-12T17:54:53.734397+00:00"
 }

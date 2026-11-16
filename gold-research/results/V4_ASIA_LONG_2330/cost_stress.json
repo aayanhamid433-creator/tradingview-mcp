@@ -1,0 +1,57 @@
+{
+  "variant": "ASIA_LONG_2330",
+  "costs": {
+    "spread": 0.5,
+    "slippage": 0.15
+  },
+  "n_trades": 1440,
+  "counters": {
+    "ambiguous_stop_target": 0,
+    "both_sides_same_minute": 0,
+    "same_minute_stop": 0,
+    "gap_fill_skipped": 0,
+    "cancel_no_entry_bar": 1,
+    "cancel_session_ended": 0,
+    "session_gap_exit": 2,
+    "decision_bar_missing": 83,
+    "end_of_data": 0
+  },
+  "periods": {
+    "development": {
+      "n": 840,
+      "mean_R": -0.02301498511980654,
+      "profit_factor": 0.7790012671193144,
+      "max_drawdown_R": -19.91757297595578,
+      "total_R": -19.332587500637494,
+      "win_rate": 0.4583333333333333
+    },
+    "validation": {
+      "n": 302,
+      "mean_R": 0.017756209855780473,
+      "profit_factor": 1.163343477494525,
+      "max_drawdown_R": -5.1285735119533316,
+      "total_R": 5.362375376445703,
+      "win_rate": 0.49337748344370863
+    },
+    "final_test": {
+      "n": 298,
+      "mean_R": 0.00985957660827511,
+      "profit_factor": 1.0745869414293963,
+      "max_drawdown_R": -7.31853189491717,
+      "total_R": 2.938153829265983,
+      "win_rate": 0.5369127516778524
+    },
+    "validation+final_test": {
+      "n": 600,
+      "mean_R": 0.01383421534285281,
+      "profit_factor": 1.1149320846471247,
+      "max_drawdown_R": -7.3185318949171645,
+      "total_R": 8.300529205711687,
+      "boot_ci90": [
+        -0.008744449306584886,
+        0.03645847577132824
+      ],
+      "mean_R_ex_top5": 0.005654520949724548
+    }
+  }
+}
