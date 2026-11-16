@@ -1,0 +1,952 @@
+{
+  "G0_author_like": {
+    "config": {
+      "clock_fix": true,
+      "clock": "fixed_gmt3",
+      "range_from": 0,
+      "range_to": 7,
+      "close_hour": 20,
+      "sl_mode": "pct",
+      "sl_pct": 1.0,
+      "spread": 0.0,
+      "slippage": 0.0,
+      "commission_frac_rt": 8e-05,
+      "both_sides_rule": "nearer_open",
+      "variant": "G0_author_like"
+    },
+    "periods": {
+      "development": {
+        "n": 891,
+        "total_R": 28.831127447694787,
+        "mean_R": 0.03235816773029718,
+        "median_R": -0.0401632052330414,
+        "win_rate": 0.4826038159371493,
+        "avg_win_R": 0.5912074266630816,
+        "avg_loss_R": -0.48891120611156247,
+        "profit_factor": 1.1279177196784906,
+        "max_drawdown_R": -9.815428541497011,
+        "longest_dd_trades": 296,
+        "longest_dd_days": 422.39166666666665,
+        "longest_losing_streak": 9,
+        "exposure_share": 0.7416549715344897,
+        "median_hold_min": 672.0,
+        "mean_hold_min": 628.7003367003367,
+        "top5_R": 14.065191187315374,
+        "mean_R_ex_top5": 0.016665842280337944,
+        "boot_ci90": [
+          -0.0054570404254675004,
+          0.07086947213975035
+        ],
+        "exits": {
+          "time_exit": 790,
+          "stop": 101
+        },
+        "compounded": 30.57661641717282
+      },
+      "validation": {
+        "n": 298,
+        "total_R": 24.92819914057321,
+        "mean_R": 0.08365167496836648,
+        "median_R": 0.0710693872848782,
+        "win_rate": 0.5436241610738255,
+        "avg_win_R": 0.5895279353017299,
+        "avg_loss_R": -0.5189362233699045,
+        "profit_factor": 1.353214082311853,
+        "max_drawdown_R": -7.404281505810783,
+        "longest_dd_trades": 63,
+        "longest_dd_days": 86.15763888888888,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.7514991111988938,
+        "median_hold_min": 678.0,
+        "mean_hold_min": 638.3959731543624,
+        "top5_R": 10.182871576061915,
+        "mean_R_ex_top5": 0.05032535004952662,
+        "boot_ci90": [
+          0.017516767951378527,
+          0.14903163629666105
+        ],
+        "exits": {
+          "time_exit": 263,
+          "stop": 35
+        },
+        "compounded": 27.391124672111978
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 40.327081706161856,
+        "mean_R": 0.14002458925750644,
+        "median_R": 0.08752774442426689,
+        "win_rate": 0.5486111111111112,
+        "avg_win_R": 0.8316730540432291,
+        "avg_loss_R": -0.7005943140974489,
+        "profit_factor": 1.4427788158918475,
+        "max_drawdown_R": -13.248566847466181,
+        "longest_dd_trades": 66,
+        "longest_dd_days": 99.54027777777777,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.6568652073081056,
+        "median_hold_min": 619.5,
+        "mean_hold_min": 576.0277777777778,
+        "top5_R": 18.88267852898556,
+        "mean_R_ex_top5": 0.07577527624443922,
+        "boot_ci90": [
+          0.041693273988759605,
+          0.23641257850027642
+        ],
+        "exits": {
+          "time_exit": 217,
+          "stop": 71
+        },
+        "compounded": 47.49781623035689
+      },
+      "screenshot_window_2026-08-02_to_2026-10-30": {
+        "n": 63,
+        "total_R": 13.494088381229075,
+        "mean_R": 0.21419187906712817,
+        "median_R": 0.1055233643571082,
+        "win_rate": 0.6190476190476191,
+        "avg_win_R": 0.7691208583840399,
+        "avg_loss_R": -0.6875677123228535,
+        "profit_factor": 1.8177429982157163,
+        "max_drawdown_R": -3.5892101862811465,
+        "longest_dd_trades": 22,
+        "longest_dd_days": 30.488194444444446,
+        "longest_losing_streak": 5,
+        "exposure_share": 0.6918473895582328,
+        "median_hold_min": 643.0,
+        "mean_hold_min": 585.952380952381,
+        "top5_R": 11.739387202576179,
+        "mean_R_ex_top5": 0.03025346859746374,
+        "boot_ci90": [
+          0.02344796468948571,
+          0.4195103097530958
+        ],
+        "exits": {
+          "time_exit": 52,
+          "stop": 11
+        },
+        "compounded": 14.10930096471461
+      },
+      "all_2021-2026": {
+        "n": 1477,
+        "total_R": 94.08640829442982,
+        "mean_R": 0.06370102118783331,
+        "median_R": 0.0086468398486837,
+        "win_rate": 0.5077860528097495,
+        "avg_win_R": 0.6415027486971141,
+        "avg_loss_R": -0.5323805408918922,
+        "profit_factor": 1.2430917980052767,
+        "max_drawdown_R": -13.248566847466186,
+        "longest_dd_trades": 296,
+        "longest_dd_days": 422.39166666666665,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.7266493335825672,
+        "median_hold_min": 668.0,
+        "mean_hold_min": 620.3859174001354,
+        "top5_R": 19.453947774470514,
+        "mean_R_ex_top5": 0.050701399809755035,
+        "boot_ci90": [
+          0.030928738947118697,
+          0.09630709169156722
+        ],
+        "exits": {
+          "time_exit": 1270,
+          "stop": 207
+        },
+        "compounded": 145.35232226524516
+      }
+    }
+  },
+  "G1_base_costs": {
+    "config": {
+      "clock_fix": true,
+      "clock": "fixed_gmt3",
+      "range_from": 0,
+      "range_to": 7,
+      "close_hour": 20,
+      "sl_mode": "pct",
+      "sl_pct": 1.0,
+      "spread": 0.25,
+      "slippage": 0.05,
+      "commission_frac_rt": 0.0,
+      "both_sides_rule": "nearer_open",
+      "variant": "G1_base_costs"
+    },
+    "periods": {
+      "development": {
+        "n": 893,
+        "total_R": 12.438359131934968,
+        "mean_R": 0.013928733630386303,
+        "median_R": -0.0561367695840735,
+        "win_rate": 0.47032474804031354,
+        "avg_win_R": 0.5843702178025316,
+        "avg_loss_R": -0.49259436013769203,
+        "profit_factor": 1.0533841726150972,
+        "max_drawdown_R": -18.536783311015686,
+        "longest_dd_trades": 676,
+        "longest_dd_days": 961.5305555555556,
+        "longest_losing_streak": 9,
+        "exposure_share": 0.7533668740897657,
+        "median_hold_min": 677.0,
+        "mean_hold_min": 637.1982082866741,
+        "top5_R": 14.056065160458711,
+        "mean_R_ex_top5": -0.0018217410231122896,
+        "boot_ci90": [
+          -0.024870812602564584,
+          0.052043609056209916
+        ],
+        "exits": {
+          "time_exit": 786,
+          "stop": 107
+        },
+        "compounded": 10.860107807046738
+      },
+      "validation": {
+        "n": 298,
+        "total_R": 23.060344373494914,
+        "mean_R": 0.07738370595132521,
+        "median_R": 0.06180518630231025,
+        "win_rate": 0.540268456375839,
+        "avg_win_R": 0.590814249644852,
+        "avg_loss_R": -0.5259908745936221,
+        "profit_factor": 1.3200125509561418,
+        "max_drawdown_R": -7.254171491439099,
+        "longest_dd_trades": 63,
+        "longest_dd_days": 86.15763888888888,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.7525933241161367,
+        "median_hold_min": 680.5,
+        "mean_hold_min": 639.3255033557047,
+        "top5_R": 10.180183442185601,
+        "mean_R_ex_top5": 0.04395959362221611,
+        "boot_ci90": [
+          0.011379359632731463,
+          0.14306284595580115
+        ],
+        "exits": {
+          "time_exit": 260,
+          "stop": 38
+        },
+        "compounded": 25.0235618185648
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 39.297596297520876,
+        "mean_R": 0.1364499871441697,
+        "median_R": 0.08842202605631841,
+        "win_rate": 0.5451388888888888,
+        "avg_win_R": 0.8337716000371759,
+        "avg_loss_R": -0.6992713351779827,
+        "profit_factor": 1.4289917747733225,
+        "max_drawdown_R": -13.132447746914654,
+        "longest_dd_trades": 66,
+        "longest_dd_days": 99.54027777777777,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.6576967023021664,
+        "median_hold_min": 625.0,
+        "mean_hold_min": 576.7569444444445,
+        "top5_R": 18.890616998086124,
+        "mean_R_ex_top5": 0.07210946748916863,
+        "boot_ci90": [
+          0.04154887293893356,
+          0.23412817554159066
+        ],
+        "exits": {
+          "time_exit": 215,
+          "stop": 73
+        },
+        "compounded": 45.98733888255555
+      },
+      "screenshot_window_2026-08-02_to_2026-10-30": {
+        "n": 63,
+        "total_R": 13.707698428458603,
+        "mean_R": 0.21758251473743814,
+        "median_R": 0.1112260140181362,
+        "win_rate": 0.6190476190476191,
+        "avg_win_R": 0.7715195958989499,
+        "avg_loss_R": -0.6825652421500186,
+        "profit_factor": 1.8367758360895896,
+        "max_drawdown_R": -3.5081924744793618,
+        "longest_dd_trades": 22,
+        "longest_dd_days": 30.488194444444446,
+        "longest_losing_streak": 5,
+        "exposure_share": 0.6931218206157964,
+        "median_hold_min": 656.0,
+        "mean_hold_min": 587.031746031746,
+        "top5_R": 11.755792824506766,
+        "mean_R_ex_top5": 0.033653544895721296,
+        "boot_ci90": [
+          0.02186976380626815,
+          0.417573357989804
+        ],
+        "exits": {
+          "time_exit": 52,
+          "stop": 11
+        },
+        "compounded": 14.353560889024664
+      },
+      "all_2021-2026": {
+        "n": 1479,
+        "total_R": 74.79629980295076,
+        "mean_R": 0.050572210820115454,
+        "median_R": -0.0038017871649127,
+        "win_rate": 0.49898580121703856,
+        "avg_win_R": 0.6388329632462345,
+        "avg_loss_R": -0.5353069191265455,
+        "profit_factor": 1.1885641157266174,
+        "max_drawdown_R": -18.536783311015686,
+        "longest_dd_trades": 768,
+        "longest_dd_days": 1092.5305555555556,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.73405056049303,
+        "median_hold_min": 672.0,
+        "mean_hold_min": 625.8573360378634,
+        "top5_R": 19.464713598567446,
+        "mean_R_ex_top5": 0.037538389555212597,
+        "boot_ci90": [
+          0.01731844334924445,
+          0.08342032381676179
+        ],
+        "exits": {
+          "time_exit": 1261,
+          "stop": 218
+        },
+        "compounded": 102.34028444002728
+      }
+    }
+  },
+  "G2_cost_stress": {
+    "config": {
+      "clock_fix": true,
+      "clock": "fixed_gmt3",
+      "range_from": 0,
+      "range_to": 7,
+      "close_hour": 20,
+      "sl_mode": "pct",
+      "sl_pct": 1.0,
+      "spread": 0.5,
+      "slippage": 0.15,
+      "commission_frac_rt": 0.0,
+      "both_sides_rule": "nearer_open",
+      "variant": "G2_cost_stress"
+    },
+    "periods": {
+      "development": {
+        "n": 893,
+        "total_R": -6.683769124570449,
+        "mean_R": -0.007484623879698151,
+        "median_R": -0.0734204212210169,
+        "win_rate": 0.46136618141097424,
+        "avg_win_R": 0.5742429414829194,
+        "avg_loss_R": -0.5057627048139984,
+        "profit_factor": 0.9725255148841745,
+        "max_drawdown_R": -30.166590237122442,
+        "longest_dd_trades": 676,
+        "longest_dd_days": 961.5305555555556,
+        "longest_losing_streak": 14,
+        "exposure_share": 0.7650655368727657,
+        "median_hold_min": 685.0,
+        "mean_hold_min": 647.0929451287794,
+        "top5_R": 13.967782108750969,
+        "mean_R_ex_top5": -0.023256251388875496,
+        "boot_ci90": [
+          -0.045439660101720784,
+          0.030633549998646332
+        ],
+        "exits": {
+          "time_exit": 781,
+          "stop": 112
+        },
+        "compounded": -8.427493188091029
+      },
+      "validation": {
+        "n": 298,
+        "total_R": 19.543166677797018,
+        "mean_R": 0.06558109623421818,
+        "median_R": 0.0558280887724454,
+        "win_rate": 0.540268456375839,
+        "avg_win_R": 0.5821766808491193,
+        "avg_loss_R": -0.5415129849555561,
+        "profit_factor": 1.2634301588806034,
+        "max_drawdown_R": -8.42190952152864,
+        "longest_dd_trades": 69,
+        "longest_dd_days": 97.35555555555555,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.7549595101718348,
+        "median_hold_min": 686.0,
+        "mean_hold_min": 641.3355704697987,
+        "top5_R": 10.12077464552732,
+        "mean_R_ex_top5": 0.0321583345811252,
+        "boot_ci90": [
+          0.000328772127961694,
+          0.1301199881927572
+        ],
+        "exits": {
+          "time_exit": 258,
+          "stop": 40
+        },
+        "compounded": 20.699239850191088
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 38.09109917860047,
+        "mean_R": 0.1322607610368072,
+        "median_R": 0.08063628077227265,
+        "win_rate": 0.5416666666666666,
+        "avg_win_R": 0.8319753926787337,
+        "avg_loss_R": -0.6946747127218331,
+        "profit_factor": 1.4154015223046799,
+        "max_drawdown_R": -13.296998693283463,
+        "longest_dd_trades": 66,
+        "longest_dd_days": 99.54027777777777,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.6605000282821425,
+        "median_hold_min": 628.5,
+        "mean_hold_min": 579.2152777777778,
+        "top5_R": 18.847753897004022,
+        "mean_R_ex_top5": 0.06799768650740794,
+        "boot_ci90": [
+          0.03584624544617716,
+          0.23180506104568166
+        ],
+        "exits": {
+          "time_exit": 215,
+          "stop": 73
+        },
+        "compounded": 44.248193843354365
+      },
+      "screenshot_window_2026-08-02_to_2026-10-30": {
+        "n": 63,
+        "total_R": 13.275228133747031,
+        "mean_R": 0.21071790688487352,
+        "median_R": 0.1066298977364194,
+        "win_rate": 0.6031746031746031,
+        "avg_win_R": 0.7838241098414738,
+        "avg_loss_R": -0.6604035216091588,
+        "profit_factor": 1.8040676767683017,
+        "max_drawdown_R": -3.635010749349677,
+        "longest_dd_trades": 22,
+        "longest_dd_days": 30.488194444444446,
+        "longest_losing_streak": 5,
+        "exposure_share": 0.6947148594377508,
+        "median_hold_min": 656.0,
+        "mean_hold_min": 588.3809523809524,
+        "top5_R": 11.720521332145642,
+        "mean_R_ex_top5": 0.026805289682782566,
+        "boot_ci90": [
+          0.015796468657918873,
+          0.40693360065393247
+        ],
+        "exits": {
+          "time_exit": 52,
+          "stop": 11
+        },
+        "compounded": 13.862002725524182
+      },
+      "all_2021-2026": {
+        "n": 1479,
+        "total_R": 50.950496731827045,
+        "mean_R": 0.0344492878511339,
+        "median_R": -0.0166647900011414,
+        "win_rate": 0.49290060851926976,
+        "avg_win_R": 0.6311477349321721,
+        "avg_loss_R": -0.5455416027116353,
+        "profit_factor": 1.1245257837436549,
+        "max_drawdown_R": -30.166590237122442,
+        "longest_dd_trades": 895,
+        "longest_dd_days": 1279.5305555555556,
+        "longest_losing_streak": 14,
+        "exposure_share": 0.7420941311083544,
+        "median_hold_min": 679.0,
+        "mean_hold_min": 632.7153482082488,
+        "top5_R": 19.421913909623633,
+        "mean_R_ex_top5": 0.021389811955361885,
+        "boot_ci90": [
+          0.0014169176043051547,
+          0.0674647984927937
+        ],
+        "exits": {
+          "time_exit": 1254,
+          "stop": 225
+        },
+        "compounded": 59.433662275139774
+      }
+    }
+  },
+  "G3_ny7_clock": {
+    "config": {
+      "clock_fix": true,
+      "clock": "ny_plus_7",
+      "range_from": 0,
+      "range_to": 7,
+      "close_hour": 20,
+      "sl_mode": "pct",
+      "sl_pct": 1.0,
+      "spread": 0.25,
+      "slippage": 0.05,
+      "commission_frac_rt": 0.0,
+      "both_sides_rule": "nearer_open",
+      "variant": "G3_ny7_clock"
+    },
+    "periods": {
+      "development": {
+        "n": 893,
+        "total_R": 20.55605172616544,
+        "mean_R": 0.023019094878124792,
+        "median_R": -0.0283478852477606,
+        "win_rate": 0.4826427771556551,
+        "avg_win_R": 0.5867754353692105,
+        "avg_loss_R": -0.502909439216373,
+        "profit_factor": 1.0884724266146861,
+        "max_drawdown_R": -16.487638815077222,
+        "longest_dd_trades": 560,
+        "longest_dd_days": 801.1916666666667,
+        "longest_losing_streak": 9,
+        "exposure_share": 0.7696941612604262,
+        "median_hold_min": 685.0,
+        "mean_hold_min": 651.0078387458007,
+        "top5_R": 13.250067294190048,
+        "mean_R_ex_top5": 0.0082274599459182,
+        "boot_ci90": [
+          -0.015042463905832457,
+          0.06178062948013403
+        ],
+        "exits": {
+          "time_exit": 785,
+          "stop": 108
+        },
+        "compounded": 20.17730533841511
+      },
+      "validation": {
+        "n": 298,
+        "total_R": 20.86481429067483,
+        "mean_R": 0.07001615533783499,
+        "median_R": 0.0649819763436846,
+        "win_rate": 0.5369127516778524,
+        "avg_win_R": 0.5831278278724165,
+        "avg_loss_R": -0.5248959287602303,
+        "profit_factor": 1.2880462548286031,
+        "max_drawdown_R": -7.254171491439102,
+        "longest_dd_trades": 63,
+        "longest_dd_days": 86.15763888888888,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.7591744025281454,
+        "median_hold_min": 691.0,
+        "mean_hold_min": 644.9161073825503,
+        "top5_R": 10.382798490720432,
+        "mean_R_ex_top5": 0.03577479795206279,
+        "boot_ci90": [
+          0.00393779458702725,
+          0.13558160838981365
+        ],
+        "exits": {
+          "time_exit": 259,
+          "stop": 39
+        },
+        "compounded": 22.315004443158017
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 44.452242142597065,
+        "mean_R": 0.1543480629951287,
+        "median_R": 0.0844891260188146,
+        "win_rate": 0.5520833333333334,
+        "avg_win_R": 0.8539820658296707,
+        "avg_loss_R": -0.707991521893958,
+        "profit_factor": 1.486716314680432,
+        "max_drawdown_R": -12.236313531667893,
+        "longest_dd_trades": 58,
+        "longest_dd_days": 87.52916666666667,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.6624283047683691,
+        "median_hold_min": 627.5,
+        "mean_hold_min": 580.90625,
+        "top5_R": 21.83423316156947,
+        "mean_R_ex_top5": 0.0799222932191787,
+        "boot_ci90": [
+          0.056044251196225005,
+          0.2568211906394238
+        ],
+        "exits": {
+          "time_exit": 216,
+          "stop": 72
+        },
+        "compounded": 53.50613007758034
+      },
+      "screenshot_window_2026-08-02_to_2026-10-30": {
+        "n": 63,
+        "total_R": 13.707698428458603,
+        "mean_R": 0.21758251473743814,
+        "median_R": 0.1112260140181362,
+        "win_rate": 0.6190476190476191,
+        "avg_win_R": 0.7715195958989499,
+        "avg_loss_R": -0.6825652421500186,
+        "profit_factor": 1.8367758360895896,
+        "max_drawdown_R": -3.5081924744793618,
+        "longest_dd_trades": 22,
+        "longest_dd_days": 30.488194444444446,
+        "longest_losing_streak": 5,
+        "exposure_share": 0.6931218206157964,
+        "median_hold_min": 656.0,
+        "mean_hold_min": 587.031746031746,
+        "top5_R": 11.755792824506766,
+        "mean_R_ex_top5": 0.033653544895721296,
+        "boot_ci90": [
+          0.024083745319486587,
+          0.41613273189818994
+        ],
+        "exits": {
+          "time_exit": 52,
+          "stop": 11
+        },
+        "compounded": 14.353560889024664
+      },
+      "all_2021-2026": {
+        "n": 1479,
+        "total_R": 85.87310815943734,
+        "mean_R": 0.0580616011896128,
+        "median_R": 0.01083311839051,
+        "win_rate": 0.5070993914807302,
+        "avg_win_R": 0.6426450847608454,
+        "avg_loss_R": -0.5433617358178281,
+        "profit_factor": 1.2167906774200756,
+        "max_drawdown_R": -16.487638815077222,
+        "longest_dd_trades": 560,
+        "longest_dd_days": 801.1916666666667,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.7460988665522457,
+        "median_hold_min": 677.0,
+        "mean_hold_min": 636.129817444219,
+        "top5_R": 21.89250564610248,
+        "mean_R_ex_top5": 0.04340610753957582,
+        "boot_ci90": [
+          0.025375806631295652,
+          0.09146967643855303
+        ],
+        "exits": {
+          "time_exit": 1260,
+          "stop": 219
+        },
+        "compounded": 125.64614611923757
+      }
+    }
+  },
+  "G4_sl_range_boundary": {
+    "config": {
+      "clock_fix": true,
+      "clock": "fixed_gmt3",
+      "range_from": 0,
+      "range_to": 7,
+      "close_hour": 20,
+      "sl_mode": "range",
+      "sl_pct": 1.0,
+      "spread": 0.25,
+      "slippage": 0.05,
+      "commission_frac_rt": 0.0,
+      "both_sides_rule": "nearer_open",
+      "variant": "G4_sl_range_boundary"
+    },
+    "periods": {
+      "development": {
+        "n": 894,
+        "total_R": -0.3116266661238143,
+        "mean_R": -0.00034857568917652607,
+        "median_R": -1.0045025286119613,
+        "win_rate": 0.3635346756152125,
+        "avg_win_R": 1.560010657914653,
+        "avg_loss_R": -0.8915906686966366,
+        "profit_factor": 0.9993857334978467,
+        "max_drawdown_R": -47.0410200122449,
+        "longest_dd_trades": 788,
+        "longest_dd_days": 1117.4909722222221,
+        "longest_losing_streak": 17,
+        "exposure_share": 0.5764967562557923,
+        "median_hold_min": 523.5,
+        "mean_hold_min": 487.0559284116331,
+        "top5_R": 40.282059427873605,
+        "mean_R_ex_top5": -0.04566218908211188,
+        "boot_ci90": [
+          -0.08232978256596933,
+          0.08252197289155838
+        ],
+        "exits": {
+          "stop": 452,
+          "time_exit": 441,
+          "stop_same_minute": 1
+        },
+        "compounded": -9.75180985091133
+      },
+      "validation": {
+        "n": 298,
+        "total_R": 29.22702716021592,
+        "mean_R": 0.09807727234971785,
+        "median_R": -0.0992444027256408,
+        "win_rate": 0.4697986577181208,
+        "avg_win_R": 1.122471510195278,
+        "avg_loss_R": -0.809613824475462,
+        "profit_factor": 1.2284807632554637,
+        "max_drawdown_R": -10.792950936318478,
+        "longest_dd_trades": 63,
+        "longest_dd_days": 86.06458333333333,
+        "longest_losing_streak": 10,
+        "exposure_share": 0.6392889591151492,
+        "median_hold_min": 594.0,
+        "mean_hold_min": 543.0738255033557,
+        "top5_R": 23.78865644144484,
+        "mean_R_ex_top5": 0.01856099221423568,
+        "boot_ci90": [
+          -0.02036692569215613,
+          0.2174811229562434
+        ],
+        "exits": {
+          "time_exit": 188,
+          "stop": 110
+        },
+        "compounded": 30.894294353092654
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 35.172155917470704,
+        "mean_R": 0.12212554138010662,
+        "median_R": 0.0813264779309453,
+        "win_rate": 0.5451388888888888,
+        "avg_win_R": 0.8082081241916946,
+        "avg_loss_R": -0.7001261036688957,
+        "profit_factor": 1.3834876866053765,
+        "max_drawdown_R": -16.389374262198157,
+        "longest_dd_trades": 103,
+        "longest_dd_days": 157.5402777777778,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.6583302222976412,
+        "median_hold_min": 630.5,
+        "mean_hold_min": 577.3125,
+        "top5_R": 18.44369458738804,
+        "mean_R_ex_top5": 0.05911117077767727,
+        "boot_ci90": [
+          0.026660428080214696,
+          0.21975737692884476
+        ],
+        "exits": {
+          "time_exit": 216,
+          "stop": 72
+        },
+        "compounded": 40.128110148498976
+      },
+      "screenshot_window_2026-08-02_to_2026-10-30": {
+        "n": 63,
+        "total_R": 11.870695875687437,
+        "mean_R": 0.18842374405853074,
+        "median_R": 0.0938276719138311,
+        "win_rate": 0.5873015873015873,
+        "avg_win_R": 0.8245622567511279,
+        "avg_loss_R": -0.7168502932347807,
+        "profit_factor": 1.63690456751818,
+        "max_drawdown_R": -5.359046969404421,
+        "longest_dd_trades": 40,
+        "longest_dd_days": 56.541666666666664,
+        "longest_losing_streak": 5,
+        "exposure_share": 0.6426880856760373,
+        "median_hold_min": 604.0,
+        "mean_hold_min": 544.3174603174604,
+        "top5_R": 13.120771732798305,
+        "mean_R_ex_top5": -0.02155303201915282,
+        "boot_ci90": [
+          -0.01613145819567423,
+          0.4028925241600795
+        ],
+        "exits": {
+          "time_exit": 49,
+          "stop": 14
+        },
+        "compounded": 12.227369322232317
+      },
+      "all_2021-2026": {
+        "n": 1480,
+        "total_R": 64.08755641156282,
+        "mean_R": 0.043302402980785686,
+        "median_R": -0.3698316180543667,
+        "win_rate": 0.42027027027027025,
+        "avg_win_R": 1.2717655156715393,
+        "avg_loss_R": -0.8472617649605297,
+        "profit_factor": 1.0881594387718865,
+        "max_drawdown_R": -47.0410200122449,
+        "longest_dd_trades": 961,
+        "longest_dd_days": 1365.4909722222221,
+        "longest_losing_streak": 17,
+        "exposure_share": 0.6054922086087651,
+        "median_hold_min": 565.0,
+        "mean_hold_min": 515.8986486486486,
+        "top5_R": 40.756827725381534,
+        "mean_R_ex_top5": 0.01581744317707204,
+        "boot_ci90": [
+          -0.015063001559662146,
+          0.10216815993379114
+        ],
+        "exits": {
+          "time_exit": 845,
+          "stop": 634,
+          "stop_same_minute": 1
+        },
+        "compounded": 65.53296050157557
+      }
+    }
+  },
+  "G5_both_sides_adverse": {
+    "config": {
+      "clock_fix": true,
+      "clock": "fixed_gmt3",
+      "range_from": 0,
+      "range_to": 7,
+      "close_hour": 20,
+      "sl_mode": "pct",
+      "sl_pct": 1.0,
+      "spread": 0.25,
+      "slippage": 0.05,
+      "commission_frac_rt": 0.0,
+      "both_sides_rule": "adverse",
+      "variant": "G5_both_sides_adverse"
+    },
+    "periods": {
+      "development": {
+        "n": 893,
+        "total_R": 12.595070679011346,
+        "mean_R": 0.014104222484895125,
+        "median_R": -0.0561367695840735,
+        "win_rate": 0.47032474804031354,
+        "avg_win_R": 0.5843702178025316,
+        "avg_loss_R": -0.49226304608467647,
+        "profit_factor": 1.0540931451499795,
+        "max_drawdown_R": -18.536783311015686,
+        "longest_dd_trades": 676,
+        "longest_dd_days": 961.5305555555556,
+        "longest_losing_streak": 9,
+        "exposure_share": 0.7533668740897657,
+        "median_hold_min": 677.0,
+        "mean_hold_min": 637.1982082866741,
+        "top5_R": 14.056065160458711,
+        "mean_R_ex_top5": -0.0016452640556839616,
+        "boot_ci90": [
+          -0.023732911307980716,
+          0.052339766341132056
+        ],
+        "exits": {
+          "time_exit": 786,
+          "stop": 107
+        },
+        "compounded": 11.034253397810033
+      },
+      "validation": {
+        "n": 298,
+        "total_R": 23.060344373494914,
+        "mean_R": 0.07738370595132521,
+        "median_R": 0.06180518630231025,
+        "win_rate": 0.540268456375839,
+        "avg_win_R": 0.590814249644852,
+        "avg_loss_R": -0.5259908745936221,
+        "profit_factor": 1.3200125509561418,
+        "max_drawdown_R": -7.254171491439099,
+        "longest_dd_trades": 63,
+        "longest_dd_days": 86.15763888888888,
+        "longest_losing_streak": 8,
+        "exposure_share": 0.7525933241161367,
+        "median_hold_min": 680.5,
+        "mean_hold_min": 639.3255033557047,
+        "top5_R": 10.180183442185601,
+        "mean_R_ex_top5": 0.04395959362221611,
+        "boot_ci90": [
+          0.010518816472631014,
+          0.14470905463963432
+        ],
+        "exits": {
+          "time_exit": 260,
+          "stop": 38
+        },
+        "compounded": 25.0235618185648
+      },
+      "final_test": {
+        "n": 288,
+        "total_R": 39.297596297520876,
+        "mean_R": 0.1364499871441697,
+        "median_R": 0.08842202605631841,
+        "win_rate": 0.5451388888888888,
+        "avg_win_R": 0.8337716000371759,
+        "avg_loss_R": -0.6992713351779827,
+        "profit_factor": 1.4289917747733225,
+        "max_drawdown_R": -13.132447746914654,
+        "longest_dd_trades": 66,
+        "longest_dd_days": 99.54027777777777,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.6576967023021664,
+        "median_hold_min": 625.0,
+        "mean_hold_min": 576.7569444444445,
+        "top5_R": 18.890616998086124,
+        "mean_R_ex_top5": 0.07210946748916863,
+        "boot_ci90": [
+          0.03940204499496751,
+          0.2343816503144716
+        ],
+        "exits": {
+          "time_exit": 215,
+          "stop": 73
+        },
+        "compounded": 45.98733888255555
+      },
+      "screenshot_window_2026-08-02_to_2026-10-30": {
+        "n": 63,
+        "total_R": 13.707698428458603,
+        "mean_R": 0.21758251473743814,
+        "median_R": 0.1112260140181362,
+        "win_rate": 0.6190476190476191,
+        "avg_win_R": 0.7715195958989499,
+        "avg_loss_R": -0.6825652421500186,
+        "profit_factor": 1.8367758360895896,
+        "max_drawdown_R": -3.5081924744793618,
+        "longest_dd_trades": 22,
+        "longest_dd_days": 30.488194444444446,
+        "longest_losing_streak": 5,
+        "exposure_share": 0.6931218206157964,
+        "median_hold_min": 656.0,
+        "mean_hold_min": 587.031746031746,
+        "top5_R": 11.755792824506766,
+        "mean_R_ex_top5": 0.033653544895721296,
+        "boot_ci90": [
+          0.026200400655798723,
+          0.42221672492364537
+        ],
+        "exits": {
+          "time_exit": 52,
+          "stop": 11
+        },
+        "compounded": 14.353560889024664
+      },
+      "all_2021-2026": {
+        "n": 1479,
+        "total_R": 74.95301135002714,
+        "mean_R": 0.050678168593662705,
+        "median_R": -0.0038017871649127,
+        "win_rate": 0.49898580121703856,
+        "avg_win_R": 0.6388329632462345,
+        "avg_loss_R": -0.5350954325582914,
+        "profit_factor": 1.1890338737000377,
+        "max_drawdown_R": -18.536783311015686,
+        "longest_dd_trades": 768,
+        "longest_dd_days": 1092.5305555555556,
+        "longest_losing_streak": 11,
+        "exposure_share": 0.73405056049303,
+        "median_hold_min": 672.0,
+        "mean_hold_min": 625.8573360378634,
+        "top5_R": 19.464713598567446,
+        "mean_R_ex_top5": 0.03764470675132951,
+        "boot_ci90": [
+          0.018468576278373196,
+          0.08341573579299659
+        ],
+        "exits": {
+          "time_exit": 1261,
+          "stop": 218
+        },
+        "compounded": 102.65813248353055
+      }
+    }
+  }
+}
