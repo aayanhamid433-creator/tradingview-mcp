@@ -1,0 +1,20 @@
+{
+  "config": {
+    "clock_fix": true,
+    "clock": "fixed_gmt3",
+    "range_from": 0,
+    "range_to": 7,
+    "close_hour": 20,
+    "sl_mode": "pct",
+    "sl_pct": 1.0,
+    "spread": 0.25,
+    "slippage": 0.05,
+    "commission_frac_rt": 0.0,
+    "both_sides_rule": "nearer_open",
+    "variant": "G1_base_costs"
+  },
+  "n_trades": 1479,
+  "both_sides_minutes": 1,
+  "ambiguous_bars": 1,
+  "run_time_utc": "2026-11-16T05:56:48.708715+00:00"
+}
